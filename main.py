@@ -1,5 +1,4 @@
 import glob, os
-from collections import OrderedDict
 
 
 def openAllFiles(file_list):
@@ -18,53 +17,57 @@ def preCountWordsBigram(splited_line, mapping_list):
     for i in range(len(splited_line)):
         if i == 0:
             new_dict = {'count': 1,
-                        'key': splited_line[i],
+                        'key': splited_line[i].lower(),
                         'prev_key': '<s>'}
             mapping_list.append(new_dict)
 
         elif splited_line[i] != '\n':
             countWordsBigram(mapping_list, splited_line[i - 1].lower(), splited_line[i].lower())
 
+    new_dict = {'count': 1,
+                'key': '</s>',
+                'prev_key': splited_line[len(splited_line) - 1].lower()}
+    mapping_list.append(new_dict)
+
 
 def preCountWordsTrigram(splited_line, mapping_list):
     for i in range(len(splited_line)):
         if i == 0:
             new_dict = {'count': 1,
-                        'key': splited_line[i],
+                        'key': splited_line[i].lower(),
                         'prev_key': '<s>',
                         'second_prev_key': '<s>'}
             mapping_list.append(new_dict)
 
         elif i == 1:
             new_dict = {'count': 1,
-                        'key': splited_line[i],
-                        'prev_key': splited_line[i - 1],
+                        'key': splited_line[i].lower(),
+                        'prev_key': splited_line[i - 1].lower(),
                         'second_prev_key': '<s>'}
             mapping_list.append(new_dict)
 
         elif splited_line[i] != '\n':
             countWordsTrigram(mapping_list, splited_line[i-2].lower(), splited_line[i - 1].lower(), splited_line[i].lower())
 
-    new_dict = {}
+    new_dict = {'count': 1,
+                'key': '</s>',
+                'prev_key': splited_line[len(splited_line) - 1].lower(),
+                'second_prev_key': splited_line[len(splited_line) - 2].lower()}
+    mapping_list.append(new_dict)
+
+    new_dict = {'count': 1,
+                'key': '</s>',
+                'prev_key': '</s>',
+                'second_prev_key': splited_line[len(splited_line) - 1].lower()}
+    mapping_list.append(new_dict)
 
 
-def authorDecicive(text_file, mapping_list):
+def mappingDistributor(text_file, unigram_mapping_list, bigram_mapping_list, trigram_mapping_list):
     for line in text_file.readlines():
         split_line = line.split(' ')
-        preCountWords(split_line, mapping_list)
-
-
-def authorDeciciveBigram(text_file, mapping_list):
-    for line in text_file.readlines():
-        split_line = line.split(' ')
-        preCountWordsBigram(split_line, mapping_list)
-
-
-def authorDeciciveTrigram(text_file, mapping_list):
-    for line in text_file.readlines():
-        split_line = line.split(' ')
-        preCountWordsTrigram(split_line, mapping_list)
-
+        preCountWords(split_line, unigram_mapping_list)
+        preCountWordsBigram(split_line, bigram_mapping_list)
+        preCountWordsTrigram(split_line, trigram_mapping_list)
 
 def countWords(mapping_list, key):
     if len(mapping_list) == 0:
@@ -81,8 +84,8 @@ def countWords(mapping_list, key):
                 break
 
         if not_found_flag:
-            new_dict = {'key': key,
-                        'count': 1}
+            new_dict = {'count': 1,
+                        'key': key}
             mapping_list.append(new_dict)
 
 
@@ -114,16 +117,13 @@ def countWordsTrigram(mapping_list, second_prev_key, prev_key, key):
     if not_found_flag:
         new_dict = {'count': 1,
                     'key': key,
-                    'second_prev_key': second_prev_key,
-                    'prev_key': prev_key}
+                    'prev_key': prev_key,
+                    'second_prev_key': second_prev_key}
         mapping_list.append(new_dict)
 
 
 file_list = []
 openAllFiles(file_list)
-
-
-# f.
 
 hamilton_unigram_word_mapping = []
 madison_unigram_word_mapping = []
@@ -137,13 +137,13 @@ for file in file_list:
     print(file.name + " " + author)
 
     if author.strip() == "HAMILTON":
-        # authorDecicive(file, hamilton_unigram_word_mapping)
-        # authorDeciciveBigram(file, hamilton_bigram_word_mapping)
-        authorDeciciveTrigram(file, hamilton_trigram_word_mapping)
+        mappingDistributor(file, hamilton_unigram_word_mapping, hamilton_bigram_word_mapping, hamilton_trigram_word_mapping)
+
     else:
-        # authorDecicive(file, madison_unigram_word_mapping)
-        # authorDeciciveBigram(file, madison_bigram_word_mapping)
-        authorDeciciveTrigram(file, madison_trigram_word_mapping)
+        mappingDistributor(file, madison_unigram_word_mapping, madison_bigram_word_mapping, madison_trigram_word_mapping)
 
 for dicts in madison_trigram_word_mapping:
     print("Second: " + dicts.get('second_prev_key') + " " + "Prev: " + dicts.get('prev_key') + " " + "Key: " + dicts.get('key') + " " + str(dicts.get('count')))
+
+# for dicts in madison_bigram_word_mapping:
+#     print(dicts)
