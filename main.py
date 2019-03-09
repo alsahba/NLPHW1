@@ -169,9 +169,6 @@ def bigramGenerator(mapping_list, last_list, prev_word, coun):
     cumulative_probability = 0.0
     probability_distribution_list = []
     word_list = []
-
-    totalCount = totalWordCountCalculator(mapping_list)
-
     found_ones = []
     temp_list = []
 
@@ -181,7 +178,8 @@ def bigramGenerator(mapping_list, last_list, prev_word, coun):
         elif not str(dict.get('key')) in temp_list:
             temp_list.append(str(dict.get('key')))
 
-    totalCount = len(found_ones) + len(temp_list)
+    total_count = len(found_ones) + len(temp_list)
+    temp_list.clear()
 
     for dict in mapping_list:
         dict_count = 0
@@ -191,7 +189,7 @@ def bigramGenerator(mapping_list, last_list, prev_word, coun):
         else:
             dict_count += 1
 
-        word_probability = dict_count / totalCount
+        word_probability = dict_count / total_count
         if not dict.get('key') in word_list:
             cumulative_probability = cumulative_probability + word_probability
             probability_distribution_list.append(cumulative_probability)
