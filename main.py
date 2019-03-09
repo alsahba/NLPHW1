@@ -68,9 +68,9 @@ def preCountWordsTrigram(separated_line, mapping_list):
 def mappingDistributor(text_file, unigram_mapping_list, bigram_mapping_list, trigram_mapping_list):
     for line in text_file.readlines():
         split_line = line.split(' ')
-        # preCountWords(split_line, unigram_mapping_list)
-        preCountWordsBigram(split_line, bigram_mapping_list)
-        #preCountWordsTrigram(split_line, trigram_mapping_list)
+        #preCountWords(split_line, unigram_mapping_list)
+        #preCountWordsBigram(split_line, bigram_mapping_list)
+        preCountWordsTrigram(split_line, trigram_mapping_list)
 
 
 def countWords(mapping_list, key):
@@ -81,7 +81,7 @@ def countWords(mapping_list, key):
     else:
         not_found_flag = True
         for mapping in mapping_list:
-            if str(mapping.get('key')) == key:
+            if mapping.get('key') == key:
                 var = int(mapping.get('count')) + 1
                 mapping['count'] = var
                 not_found_flag = False
@@ -112,7 +112,8 @@ def countWordsBigram(mapping_list, prev_key, key):
 def countWordsTrigram(mapping_list, second_prev_key, prev_key, key):
     not_found_flag = True
     for mapping in mapping_list:
-        if str(mapping.get('second_prev_key')) == second_prev_key and str(mapping.get('prev_key')) == prev_key and str(mapping.get('key')) == key:
+        if mapping.get('second_prev_key') == second_prev_key \
+                and mapping.get('prev_key') == prev_key and mapping.get('key') == key:
             var = int(mapping.get('count')) + 1
             mapping['count'] = var
             not_found_flag = False
@@ -201,9 +202,59 @@ def bigramGenerator(mapping_list, last_list, prev_word, repeat_count):
     dice = random.uniform(0, 1)
     new_word = boundaries(dice, probability_distribution_list, word_list)
     last_list.append(new_word)
+
+    probability_distribution_list.clear()
+    word_list.clear()
+    found_ones.clear()
+    temp_list.clear()
+
     print(repeat_count)
     if repeat_count <= 30 and new_word != '</s>':
         bigramGenerator(mapping_list, last_list, new_word, repeat_count + 1)
+
+
+def trigramGenerator(mapping_list, last_list, second_prev_word, prev_word, repeat_count):
+    cumulative_probability = 0.0
+    probability_distribution_list = []
+    word_list = []
+    found_ones = []
+    temp_list = []
+
+    for dict in mapping_list:
+        if dict.get('second_prev_key') == second_prev_word and dict.get('prev_key') == prev_word:
+            found_ones.append(dict)
+        elif not dict.get('key') in temp_list:
+            temp_list.append(str(dict.get('key')))
+
+    total_count = len(found_ones) + len(temp_list)
+    temp_list.clear()
+
+    for dict in mapping_list:
+        dict_count = 0
+        if dict in found_ones:
+            dict_count += int(dict.get('count')) + 1
+
+        else:
+            dict_count += 1
+
+        word_probability = dict_count / total_count
+        if not dict.get('key') in word_list:
+            cumulative_probability = cumulative_probability + word_probability
+            probability_distribution_list.append(cumulative_probability)
+            word_list.append(dict.get('key'))
+
+    dice = random.uniform(0, 1)
+    new_word = boundaries(dice, probability_distribution_list, word_list)
+    last_list.append(new_word)
+
+    probability_distribution_list.clear()
+    word_list.clear()
+    found_ones.clear()
+    temp_list.clear()
+
+    print(repeat_count)
+    if repeat_count <= 30 and new_word != '</s>':
+        trigramGenerator(mapping_list, last_list, prev_word, new_word, repeat_count + 1)
 
 file_list = []
 openAllFiles(file_list)
@@ -233,8 +284,9 @@ for file in file_list:
 
 #unigramGenerator(hamilton_unigram_word_mapping)
 random_list = []
-bigramGenerator(hamilton_bigram_word_mapping, random_list, 'to', 1)
-
+#unigramGenerator(hamilton_unigram_word_mapping)
+#bigramGenerator(hamilton_bigram_word_mapping, random_list, 'BIGRAM_INITIAL', 1)
+trigramGenerator(hamilton_trigram_word_mapping, random_list, '<s>', '<s>', 1)
 
 print(*random_list)
 
