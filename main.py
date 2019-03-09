@@ -8,58 +8,60 @@ def openAllFiles(file_list):
         file_list.append(open(file, 'r'))
 
 
-def preCountWords(splited_line, mapping_list):
-    for word in splited_line:
+def preCountWords(separated_line, mapping_list):
+    for word in separated_line:
         if word != '\n':
-            countWords(mapping_list, word.lower())
+            countWords(mapping_list, word.lower().strip("?,.;:"))
 
 
-def preCountWordsBigram(splited_line, mapping_list):
-    for i in range(len(splited_line)):
+def preCountWordsBigram(separated_line, mapping_list):
+    for i in range(len(separated_line)):
         if i == 0:
             new_dict = {'count': 1,
-                        'key': splited_line[i].lower(),
+                        'key': separated_line[i].lower().strip("?,.;:"),
                         'prev_key': '<s>'}
             mapping_list.append(new_dict)
 
-        elif splited_line[i] != '\n':
-            countWordsBigram(mapping_list, splited_line[i - 1].lower(), splited_line[i].lower())
+        elif separated_line[i] != '\n':
+            countWordsBigram(mapping_list, separated_line[i - 1].lower().strip("?,.;:"),
+                             separated_line[i].lower().strip("?,.;:"))
 
     new_dict = {'count': 1,
                 'key': '</s>',
-                'prev_key': splited_line[len(splited_line) - 1].lower()}
+                'prev_key': separated_line[len(separated_line) - 1].lower().strip("?,.;:")}
     mapping_list.append(new_dict)
 
 
-def preCountWordsTrigram(splited_line, mapping_list):
-    for i in range(len(splited_line)):
+def preCountWordsTrigram(separated_line, mapping_list):
+    for i in range(len(separated_line)):
         if i == 0:
             new_dict = {'count': 1,
-                        'key': splited_line[i].lower(),
+                        'key': separated_line[i].lower().strip("?,.;:"),
                         'prev_key': '<s>',
                         'second_prev_key': '<s>'}
             mapping_list.append(new_dict)
 
         elif i == 1:
             new_dict = {'count': 1,
-                        'key': splited_line[i].lower(),
-                        'prev_key': splited_line[i - 1].lower(),
+                        'key': separated_line[i].lower().strip("?,.:;"),
+                        'prev_key': separated_line[i - 1].lower().strip("?,.:;"),
                         'second_prev_key': '<s>'}
             mapping_list.append(new_dict)
 
-        elif splited_line[i] != '\n':
-            countWordsTrigram(mapping_list, splited_line[i-2].lower(), splited_line[i - 1].lower(), splited_line[i].lower())
+        elif separated_line[i] != '\n':
+            countWordsTrigram(mapping_list, separated_line[i-2].lower().strip("?,.;:"),
+                              separated_line[i - 1].lower().strip("?,.;:"), separated_line[i].lower().strip("?,.;:"))
 
     new_dict = {'count': 1,
                 'key': '</s>',
-                'prev_key': splited_line[len(splited_line) - 1].lower(),
-                'second_prev_key': splited_line[len(splited_line) - 2].lower()}
+                'prev_key': separated_line[len(separated_line) - 1].lower().strip("?,.;:"),
+                'second_prev_key': separated_line[len(separated_line) - 2].lower().strip("?,.;:")}
     mapping_list.append(new_dict)
 
     new_dict = {'count': 1,
                 'key': '</s>',
                 'prev_key': '</s>',
-                'second_prev_key': splited_line[len(splited_line) - 1].lower()}
+                'second_prev_key': separated_line[len(separated_line) - 1].lower().strip("?,.;:")}
     mapping_list.append(new_dict)
 
 
@@ -94,7 +96,7 @@ def countWords(mapping_list, key):
 def countWordsBigram(mapping_list, prev_key, key):
     not_found_flag = True
     for mapping in mapping_list:
-        if str(mapping.get('prev_key')) == prev_key and str(mapping.get('key')) == key:
+        if mapping.get('prev_key') == prev_key and mapping.get('key') == key:
             var = int(mapping.get('count')) + 1
             mapping['count'] = var
             not_found_flag = False
@@ -165,7 +167,8 @@ def unigramGenerator(mapping_list):
     generate(probability_distribution_list, word_list)
 
 #Big time defects ayrilmasi gerekiyor unigraminda bigraminda su anki hal cok kotu
-def bigramGenerator(mapping_list, last_list, prev_word, coun):
+#Baslangicta random bi word secmesi gerekiyor onun icinde unigrama ihtiyaci var
+def bigramGenerator(mapping_list, last_list, prev_word, repeat_count):
     cumulative_probability = 0.0
     probability_distribution_list = []
     word_list = []
@@ -175,7 +178,7 @@ def bigramGenerator(mapping_list, last_list, prev_word, coun):
     for dict in mapping_list:
         if dict.get('prev_key') == prev_word:
             found_ones.append(dict)
-        elif not str(dict.get('key')) in temp_list:
+        elif not dict.get('key') in temp_list:
             temp_list.append(str(dict.get('key')))
 
     total_count = len(found_ones) + len(temp_list)
@@ -198,8 +201,9 @@ def bigramGenerator(mapping_list, last_list, prev_word, coun):
     dice = random.uniform(0, 1)
     new_word = boundaries(dice, probability_distribution_list, word_list)
     last_list.append(new_word)
-    if coun <= 30:
-        bigramGenerator(mapping_list, last_list, new_word, coun + 1)
+    print(repeat_count)
+    if repeat_count <= 30 and new_word != '</s>':
+        bigramGenerator(mapping_list, last_list, new_word, repeat_count + 1)
 
 file_list = []
 openAllFiles(file_list)
@@ -211,6 +215,7 @@ madison_bigram_word_mapping = []
 hamilton_trigram_word_mapping = []
 madison_trigram_word_mapping = []
 
+count = len(file_list)
 for file in file_list:
     author = file.readline()
     print(file.name + " " + author)
@@ -223,9 +228,13 @@ for file in file_list:
         mappingDistributor(file, madison_unigram_word_mapping,
                            madison_bigram_word_mapping, madison_trigram_word_mapping)
 
+    count -= 1
+    print(count)
+
 #unigramGenerator(hamilton_unigram_word_mapping)
 random_list = []
-bigramGenerator(hamilton_bigram_word_mapping, random_list, 'to', 0)
+bigramGenerator(hamilton_bigram_word_mapping, random_list, 'to', 1)
+
 
 print(*random_list)
 
