@@ -1,5 +1,6 @@
 import glob, os
-
+import bisect
+import random
 
 def openAllFiles(file_list):
     os.chdir("./dataset")
@@ -65,9 +66,10 @@ def preCountWordsTrigram(splited_line, mapping_list):
 def mappingDistributor(text_file, unigram_mapping_list, bigram_mapping_list, trigram_mapping_list):
     for line in text_file.readlines():
         split_line = line.split(' ')
-        preCountWords(split_line, unigram_mapping_list)
+        # preCountWords(split_line, unigram_mapping_list)
         preCountWordsBigram(split_line, bigram_mapping_list)
-        preCountWordsTrigram(split_line, trigram_mapping_list)
+        #preCountWordsTrigram(split_line, trigram_mapping_list)
+
 
 def countWords(mapping_list, key):
     if len(mapping_list) == 0:
@@ -122,6 +124,85 @@ def countWordsTrigram(mapping_list, second_prev_key, prev_key, key):
         mapping_list.append(new_dict)
 
 
+def boundaries(num, breakpoints, result):
+    i = bisect.bisect(breakpoints, num)
+
+    if i >= len(result):
+        i = len(result) - 1
+    return result[i]
+
+
+def generate(probability_distribution_list, word_list):
+    unmeaningful_list = []
+    for i in range(30):
+        dice = random.uniform(0, 1)
+        unmeaningful_list.append(boundaries(dice, probability_distribution_list, word_list))
+
+    print(*unmeaningful_list)
+
+def probabilityCalculator(word_dict, total_word_count):
+    return word_dict.get('count') / total_word_count
+
+def totalWordCountCalculator(mapping_list):
+    sum = 0
+    for dicts in mapping_list:
+        sum = sum + int(dicts.get('count'))
+    return sum
+
+def unigramGenerator(mapping_list):
+    cumulative_probability = 0.0
+    probability_distribution_list = []
+    word_list = []
+
+    totalCount = totalWordCountCalculator(mapping_list)
+
+    for dict in mapping_list:
+        word_probability = probabilityCalculator(dict, totalCount)
+        cumulative_probability = cumulative_probability + word_probability
+        probability_distribution_list.append(cumulative_probability)
+        word_list.append(dict.get('key'))
+
+    generate(probability_distribution_list, word_list)
+
+#Big time defects ayrilmasi gerekiyor unigraminda bigraminda su anki hal cok kotu
+def bigramGenerator(mapping_list, last_list, prev_word, coun):
+    cumulative_probability = 0.0
+    probability_distribution_list = []
+    word_list = []
+
+    totalCount = totalWordCountCalculator(mapping_list)
+
+    found_ones = []
+    temp_list = []
+
+    for dict in mapping_list:
+        if dict.get('prev_key') == prev_word:
+            found_ones.append(dict)
+        elif not str(dict.get('key')) in temp_list:
+            temp_list.append(str(dict.get('key')))
+
+    totalCount = len(found_ones) + len(temp_list)
+
+    for dict in mapping_list:
+        dict_count = 0
+        if dict in found_ones:
+            dict_count += int(dict.get('count')) + 1
+
+        else:
+            dict_count += 1
+
+        word_probability = dict_count / totalCount
+        if not dict.get('key') in word_list:
+            cumulative_probability = cumulative_probability + word_probability
+            probability_distribution_list.append(cumulative_probability)
+            word_list.append(dict.get('key'))
+
+    dice = random.uniform(0, 1)
+    new_word = boundaries(dice, probability_distribution_list, word_list)
+    last_list.append(new_word)
+    if coun <= 30:
+        bigramGenerator(mapping_list, last_list, new_word, coun + 1)
+
 file_list = []
 openAllFiles(file_list)
 
@@ -137,13 +218,16 @@ for file in file_list:
     print(file.name + " " + author)
 
     if author.strip() == "HAMILTON":
-        mappingDistributor(file, hamilton_unigram_word_mapping, hamilton_bigram_word_mapping, hamilton_trigram_word_mapping)
+        mappingDistributor(file, hamilton_unigram_word_mapping,
+                           hamilton_bigram_word_mapping, hamilton_trigram_word_mapping)
 
     else:
-        mappingDistributor(file, madison_unigram_word_mapping, madison_bigram_word_mapping, madison_trigram_word_mapping)
+        mappingDistributor(file, madison_unigram_word_mapping,
+                           madison_bigram_word_mapping, madison_trigram_word_mapping)
 
-for dicts in madison_trigram_word_mapping:
-    print("Second: " + dicts.get('second_prev_key') + " " + "Prev: " + dicts.get('prev_key') + " " + "Key: " + dicts.get('key') + " " + str(dicts.get('count')))
+#unigramGenerator(hamilton_unigram_word_mapping)
+random_list = []
+bigramGenerator(hamilton_bigram_word_mapping, random_list, 'to', 0)
 
-# for dicts in madison_bigram_word_mapping:
-#     print(dicts)
+print(*random_list)
+
