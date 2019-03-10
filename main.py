@@ -129,9 +129,6 @@ def countWordsTrigram(mapping_list, second_prev_key, prev_key, key):
 
 def boundaries(num, breakpoints, result):
     i = bisect.bisect(breakpoints, num)
-
-    if i >= len(result):
-        i = len(result) - 1
     return result[i]
 
 
@@ -252,7 +249,7 @@ def trigramGenerator(mapping_list, last_list, second_prev_word, prev_word, repea
     found_ones.clear()
     temp_list.clear()
 
-    print(repeat_count)
+    # print(repeat_count)
     if repeat_count <= 30 and new_word != '</s>':
         trigramGenerator(mapping_list, last_list, prev_word, new_word, repeat_count + 1)
 
@@ -269,7 +266,7 @@ madison_trigram_word_mapping = []
 count = len(file_list)
 for file in file_list:
     author = file.readline()
-    print(file.name + " " + author)
+    # print(file.name + " " + author)
 
     if author.strip() == "HAMILTON":
         mappingDistributor(file, hamilton_unigram_word_mapping,
@@ -284,8 +281,8 @@ for file in file_list:
 
 #unigramGenerator(hamilton_unigram_word_mapping)
 random_list = []
-#unigramGenerator(hamilton_unigram_word_mapping)
-#bigramGenerator(hamilton_bigram_word_mapping, random_list, 'BIGRAM_INITIAL', 1)
+unigramGenerator(hamilton_unigram_word_mapping)
+bigramGenerator(hamilton_bigram_word_mapping, random_list, <s>, 1)
 trigramGenerator(hamilton_trigram_word_mapping, random_list, '<s>', '<s>', 1)
 
 print(*random_list)
