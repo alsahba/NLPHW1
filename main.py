@@ -140,6 +140,7 @@ def bigramGenerator(mapping, last_list, prev_word, repeat_count):
     if repeat_count < 30 and new_word != '</s>':
         bigramGenerator(mapping, last_list, new_word, repeat_count + 1)
 
+
 def trigramGenerator(mapping_list, last_list, second_prev_word, prev_word, repeat_count):
     cumulative_probability = 0.0
     probability_distribution_list = []
@@ -209,22 +210,12 @@ for file in file_list:
     count -= 1
     print(count)
 
-sorted(hamilton_unigram_word_mapping)
-
 liste = unigramGenerator(hamilton_unigram_word_mapping)
 print(*liste)
 
 bi_list = []
 tri_list = []
 
-# i = totalWordCountCalculator(hamilton_unigram_word_mapping)
-
-# dicts = {'jack': 4098, 'sape': 4139}
-#
-# for dicts in dicts.items():
-#     print(dicts[1])
-
-#unigramGenerator(hamilton_unigram_word_mapping, i)
 bigramGenerator(hamilton_bigram_word_mapping, bi_list, 'to', 1)
 print(*bi_list)
 print(len(bi_list))
