@@ -2,10 +2,22 @@ import glob, os
 import bisect
 import random
 
+
 def openAllFiles(file_list):
     os.chdir("./dataset")
     for file in glob.glob("*.txt"):
         file_list.append(open(file, 'r'))
+
+
+def pre(separated_line, unigram_mapping_list, bigram_mapping_list, trigram_mapping_list):
+
+    for i in range(2, len(separated_line)):
+        if separated_line[i] != '\n':
+            countWords(unigram_mapping_list, separated_line[i].lower().strip("?;:.,()"))
+            countWordsBigram(bigram_mapping_list, separated_line[i - 1].lower().strip("?;:.,()"),
+                             separated_line[i].lower().strip("?;:.,()"))
+            countWordsTrigram(trigram_mapping_list, separated_line[i - 2].lower().strip("?;:.,()"),
+                              separated_line[i - 1].lower().strip("?;:.,()"), separated_line[i].lower().strip("?;:.,()"))
 
 
 def preCountWords(separated_line, mapping_list):
@@ -68,58 +80,52 @@ def preCountWordsTrigram(separated_line, mapping_list):
 def mappingDistributor(text_file, unigram_mapping_list, bigram_mapping_list, trigram_mapping_list):
     for line in text_file.readlines():
         split_line = line.split(' ')
-        #preCountWords(split_line, unigram_mapping_list)
-        #preCountWordsBigram(split_line, bigram_mapping_list)
+        preCountWords(split_line, unigram_mapping_list)
+        preCountWordsBigram(split_line, bigram_mapping_list)
         preCountWordsTrigram(split_line, trigram_mapping_list)
-
+        #pre(split_line, unigram_mapping_list, bigram_mapping_list, trigram_mapping_list)
 
 def countWords(mapping_list, key):
-    if len(mapping_list) == 0:
+    k = []
+    for dicti in [x for x in mapping_list if x["key"] == key]:
+        k.append(dicti)
+
+    if len(k) != 0:
+        var = k[0].get('count') + 1
+        k[0]['count'] = var
+
+    else:
         new_dict = {'count': 1,
                     'key': key}
         mapping_list.append(new_dict)
-    else:
-        not_found_flag = True
-        for mapping in mapping_list:
-            if mapping.get('key') == key:
-                var = int(mapping.get('count')) + 1
-                mapping['count'] = var
-                not_found_flag = False
-                break
-
-        if not_found_flag:
-            new_dict = {'count': 1,
-                        'key': key}
-            mapping_list.append(new_dict)
 
 
 def countWordsBigram(mapping_list, prev_key, key):
-    not_found_flag = True
-    for mapping in mapping_list:
-        if mapping.get('prev_key') == prev_key and mapping.get('key') == key:
-            var = int(mapping.get('count')) + 1
-            mapping['count'] = var
-            not_found_flag = False
-            break
+    k = []
+    for dicti in [x for x in mapping_list if x["prev_key"] == prev_key and x["key"] == key]:
+        k.append(dicti)
 
-    if not_found_flag:
+    if len(k) != 0:
+        var = k[0].get('count') + 1
+        k[0]['count'] = var
+
+    else:
         new_dict = {'count': 1,
                     'key': key,
                     'prev_key': prev_key}
         mapping_list.append(new_dict)
 
-
 def countWordsTrigram(mapping_list, second_prev_key, prev_key, key):
-    not_found_flag = True
-    for mapping in mapping_list:
-        if mapping.get('second_prev_key') == second_prev_key \
-                and mapping.get('prev_key') == prev_key and mapping.get('key') == key:
-            var = int(mapping.get('count')) + 1
-            mapping['count'] = var
-            not_found_flag = False
-            break
+    k  = []
+    for dicti in [x for x in mapping_list if x["second_prev_key"] == second_prev_key
+                                            and x["prev_key"] == prev_key and x["key"] == key]:
+        k.append(dicti)
 
-    if not_found_flag:
+    if len(k) != 0:
+        var = k[0].get('count') + 1
+        k[0]['count'] = var
+
+    else:
         new_dict = {'count': 1,
                     'key': key,
                     'prev_key': prev_key,
@@ -129,6 +135,8 @@ def countWordsTrigram(mapping_list, second_prev_key, prev_key, key):
 
 def boundaries(num, breakpoints, result):
     i = bisect.bisect(breakpoints, num)
+    if i > len(result):
+        return '</s>'
     return result[i]
 
 
@@ -280,10 +288,13 @@ for file in file_list:
     print(count)
 
 #unigramGenerator(hamilton_unigram_word_mapping)
-random_list = []
-unigramGenerator(hamilton_unigram_word_mapping)
-bigramGenerator(hamilton_bigram_word_mapping, random_list, <s>, 1)
-trigramGenerator(hamilton_trigram_word_mapping, random_list, '<s>', '<s>', 1)
+bi_list = []
+tri_list = []
 
-print(*random_list)
+unigramGenerator(hamilton_unigram_word_mapping)
+bigramGenerator(hamilton_bigram_word_mapping, bi_list, '<s>', 1)
+trigramGenerator(hamilton_trigram_word_mapping, tri_list, '<s>', '<s>', 1)
+
+print(*bi_list)
+print(*tri_list)
 
