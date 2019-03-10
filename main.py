@@ -9,15 +9,15 @@ def openAllFiles(file_list):
         file_list.append(open(file, 'r'))
 
 
-def pre(separated_line, unigram_mapping_list, bigram_mapping_list, trigram_mapping_list):
-
-    for i in range(2, len(separated_line)):
-        if separated_line[i] != '\n':
-            countWords(unigram_mapping_list, separated_line[i].lower().strip("?;:.,()"))
-            countWordsBigram(bigram_mapping_list, separated_line[i - 1].lower().strip("?;:.,()"),
-                             separated_line[i].lower().strip("?;:.,()"))
-            countWordsTrigram(trigram_mapping_list, separated_line[i - 2].lower().strip("?;:.,()"),
-                              separated_line[i - 1].lower().strip("?;:.,()"), separated_line[i].lower().strip("?;:.,()"))
+# def pre(separated_line, unigram_mapping_list, bigram_mapping_list, trigram_mapping_list):
+#
+#     for i in range(2, len(separated_line)):
+#         if separated_line[i] != '\n':
+#             countWords(unigram_mapping_list, separated_line[i].lower().strip("?;:.,()"))
+#             countWordsBigram(bigram_mapping_list, separated_line[i - 1].lower().strip("?;:.,()"),
+#                              separated_line[i].lower().strip("?;:.,()"))
+#             countWordsTrigram(trigram_mapping_list, separated_line[i - 2].lower().strip("?;:.,()"),
+#                               separated_line[i - 1].lower().strip("?;:.,()"), separated_line[i].lower().strip("?;:.,()"))
 
 
 def preCountWords(separated_line, mapping_list):
@@ -25,55 +25,94 @@ def preCountWords(separated_line, mapping_list):
     for word in uniqWords:
         countWords(mapping_list, word, separated_line.count(word))
 
-def preCountWordsBigram(separated_line, mapping_list):
+
+# def preCountWordsBigram(separated_line, mapping_list):
+#     for i in range(len(separated_line)):
+#         if i == 0:
+#             new_dict = {'count': 1,
+#                         'key': separated_line[i],
+#                         'prev_key': '<s>'}
+#             mapping_list.append(new_dict)
+#
+#         elif separated_line[i] != '\n':
+#             countWordsBigram(mapping_list, separated_line[i - 1],
+#                              separated_line[i])
+#
+#     new_dict = {'count': 1,
+#                 'key': '</s>',
+#                 'prev_key': separated_line[len(separated_line) - 1]}
+#     mapping_list.append(new_dict)
+
+
+def newBigramCounter(separated_line, unigram_mapping_list):
     for i in range(len(separated_line)):
-        if i == 0:
-            new_dict = {'count': 1,
-                        'key': separated_line[i],
-                        'prev_key': '<s>'}
-            mapping_list.append(new_dict)
+        if i + 1 < len(separated_line):
+            k = []
+            for dicti in [x for x in unigram_mapping_list if x["key"] == separated_line[i]]:
+                for dicti2 in [y for y in dicti['next_key'] if y["key"] == separated_line[i + 1]]:
+                    k.append(dicti2)
 
-        elif separated_line[i] != '\n':
-            countWordsBigram(mapping_list, separated_line[i - 1],
-                             separated_line[i])
+                if len(k) != 0:
+                    var = k[0]['count'] + 1
+                    k[0]['count'] = var
 
-    new_dict = {'count': 1,
-                'key': '</s>',
-                'prev_key': separated_line[len(separated_line) - 1]}
-    mapping_list.append(new_dict)
+                else:
+                    new_dict = {'count': 1,
+                                'key': separated_line[i + 1],
+                                'next_key': []}
+                    dicti['next_key'].append(new_dict)
 
-
-def preCountWordsTrigram(separated_line, mapping_list):
+def newTrigramCounter(separated_line, mapping_list):
     for i in range(len(separated_line)):
-        if i == 0:
-            new_dict = {'count': 1,
-                        'key': separated_line[i],
-                        'prev_key': '<s>',
-                        'second_prev_key': '<s>'}
-            mapping_list.append(new_dict)
+        if i + 2 < len(separated_line):
+            k = []
+            for dicti in [x for x in mapping_list if x["key"] == separated_line[i]]:
+                for dicti2 in [y for y in dicti['next_key'] if y["key"] == separated_line[i + 1]]:
+                    for dicti3 in [z for z in dicti2['next_key'] if z["key"] == separated_line[i + 2]]:
+                        k.append(dicti3)
 
-        elif i == 1:
-            new_dict = {'count': 1,
-                        'key': separated_line[i],
-                        'prev_key': separated_line[i - 1],
-                        'second_prev_key': '<s>'}
-            mapping_list.append(new_dict)
+                if len(k) != 0:
+                    var = k[0]['count'] + 1
+                    k[0]['count'] = var
 
-        elif separated_line[i] != '\n':
-            countWordsTrigram(mapping_list, separated_line[i-2],
-                              separated_line[i - 1], separated_line[i])
+                else:
+                    new_dict = {'count': 1,
+                                'key': separated_line[i + 2],
+                                'next_key': []}
+                    dicti2['next_key'].append(new_dict)
 
-    new_dict = {'count': 1,
-                'key': '</s>',
-                'prev_key': separated_line[len(separated_line) - 1],
-                'second_prev_key': separated_line[len(separated_line) - 2]}
-    mapping_list.append(new_dict)
 
-    new_dict = {'count': 1,
-                'key': '</s>',
-                'prev_key': '</s>',
-                'second_prev_key': separated_line[len(separated_line) - 1]}
-    mapping_list.append(new_dict)
+# def preCountWordsTrigram(separated_line, mapping_list):
+#     for i in range(len(separated_line)):
+#         if i == 0:
+#             new_dict = {'count': 1,
+#                         'key': separated_line[i],
+#                         'prev_key': '<s>',
+#                         'second_prev_key': '<s>'}
+#             mapping_list.append(new_dict)
+#
+#         elif i == 1:
+#             new_dict = {'count': 1,
+#                         'key': separated_line[i],
+#                         'prev_key': separated_line[i - 1],
+#                         'second_prev_key': '<s>'}
+#             mapping_list.append(new_dict)
+#
+#         elif separated_line[i] != '\n':
+#             countWordsTrigram(mapping_list, separated_line[i-2],
+#                               separated_line[i - 1], separated_line[i])
+#
+#     new_dict = {'count': 1,
+#                 'key': '</s>',
+#                 'prev_key': separated_line[len(separated_line) - 1],
+#                 'second_prev_key': separated_line[len(separated_line) - 2]}
+#     mapping_list.append(new_dict)
+#
+#     new_dict = {'count': 1,
+#                 'key': '</s>',
+#                 'prev_key': '</s>',
+#                 'second_prev_key': separated_line[len(separated_line) - 1]}
+#     mapping_list.append(new_dict)
 
 
 def mappingDistributor(text_file, unigram_mapping_list, bigram_mapping_list, trigram_mapping_list):
@@ -81,9 +120,8 @@ def mappingDistributor(text_file, unigram_mapping_list, bigram_mapping_list, tri
         split_line = line.split(' ')
         split_line = list(map(lambda x: x.lower().strip(',.;:?()'), split_line))
         preCountWords(split_line, unigram_mapping_list)
-        # preCountWordsBigram(split_line, bigram_mapping_list)
-        # preCountWordsTrigram(split_line, trigram_mapping_list)
-        #pre(split_line, unigram_mapping_list, bigram_mapping_list, trigram_mapping_list)
+        newBigramCounter(split_line, unigram_mapping_list)
+        newTrigramCounter(split_line, unigram_mapping_list)
 
 def countWords(mapping_list, key, count):
     k = []
@@ -96,61 +134,62 @@ def countWords(mapping_list, key, count):
 
     else:
         new_dict = {'count': count,
-                    'key': key}
-        mapping_list.append(new_dict)
-
-
-def countWordsBigram(mapping_list, prev_key, key):
-    k = []
-    for dicti in [x for x in mapping_list if x["prev_key"] == prev_key and x["key"] == key]:
-        k.append(dicti)
-
-    if len(k) != 0:
-        var = k[0].get('count') + 1
-        k[0]['count'] = var
-
-    else:
-        new_dict = {'count': 1,
                     'key': key,
-                    'prev_key': prev_key}
+                    'next_key': []}
         mapping_list.append(new_dict)
 
 
-def countWordsTrigram(mapping_list, second_prev_key, prev_key, key):
-    k  = []
-    for dicti in [x for x in mapping_list if x["second_prev_key"] == second_prev_key
-                                            and x["prev_key"] == prev_key and x["key"] == key]:
-        k.append(dicti)
-
-    if len(k) != 0:
-        var = k[0].get('count') + 1
-        k[0]['count'] = var
-
-    else:
-        new_dict = {'count': 1,
-                    'key': key,
-                    'prev_key': prev_key,
-                    'second_prev_key': second_prev_key}
-        mapping_list.append(new_dict)
-
-
-def newerCountWordsTrigram(mapping_list, second_prev_key, prev_key, key):
-
-    for dicti in [x for x in mapping_list if x["second_prev_key"] == second_prev_key
-                                            and x["prev_key"] == prev_key and x["key"] == key]:
-        k.append(dicti)
-
-    if len(k) != 0:
-        var = k[0].get('count') + 1
-        k[0]['count'] = var
-
-    else:
-        new_dict = {'count': 1,
-                    'key': key,
-                    'prev_key': prev_key,
-                    'second_prev_key': second_prev_key}
-        mapping_list.append(new_dict)
-
+# def countWordsBigram(mapping_list, prev_key, key):
+#     k = []
+#     for dicti in [x for x in mapping_list if x["prev_key"] == prev_key and x["key"] == key]:
+#         k.append(dicti)
+#
+#     if len(k) != 0:
+#         var = k[0].get('count') + 1
+#         k[0]['count'] = var
+#
+#     else:
+#         new_dict = {'count': 1,
+#                     'key': key,
+#                     'prev_key': prev_key}
+#         mapping_list.append(new_dict)
+#
+#
+# def countWordsTrigram(mapping_list, second_prev_key, prev_key, key):
+#     k  = []
+#     for dicti in [x for x in mapping_list if x["second_prev_key"] == second_prev_key
+#                                             and x["prev_key"] == prev_key and x["key"] == key]:
+#         k.append(dicti)
+#
+#     if len(k) != 0:
+#         var = k[0].get('count') + 1
+#         k[0]['count'] = var
+#
+#     else:
+#         new_dict = {'count': 1,
+#                     'key': key,
+#                     'prev_key': prev_key,
+#                     'second_prev_key': second_prev_key}
+#         mapping_list.append(new_dict)
+#
+#
+# def newerCountWordsTrigram(mapping_list, second_prev_key, prev_key, key):
+#
+#     for dicti in [x for x in mapping_list if x["second_prev_key"] == second_prev_key
+#                                             and x["prev_key"] == prev_key and x["key"] == key]:
+#         k.append(dicti)
+#
+#     if len(k) != 0:
+#         var = k[0].get('count') + 1
+#         k[0]['count'] = var
+#
+#     else:
+#         new_dict = {'count': 1,
+#                     'key': key,
+#                     'prev_key': prev_key,
+#                     'second_prev_key': second_prev_key}
+#         mapping_list.append(new_dict)
+#
 
 def boundaries(num, breakpoints, result):
     i = bisect.bisect(breakpoints, num)
@@ -165,7 +204,7 @@ def generate(probability_distribution_list, word_list):
         dice = random.uniform(0, 1)
         unmeaningful_list.append(boundaries(dice, probability_distribution_list, word_list))
 
-    print(*unmeaningful_list)
+    return unmeaningful_list
 
 
 def probabilityCalculator(word_dict, total_word_count):
@@ -179,15 +218,13 @@ def totalWordCountCalculator(mapping_list):
     return sum
 
 
-def unigramGenerator(mapping_list, i):
+def unigramGenerator(mapping_list, total_word_count):
     cumulative_probability = 0.0
     probability_distribution_list = []
     word_list = []
 
-    totalCount = i
-
     for dict in mapping_list:
-        word_probability = probabilityCalculator(dict, totalCount)
+        word_probability = probabilityCalculator(dict, total_word_count)
         cumulative_probability = cumulative_probability + word_probability
         probability_distribution_list.append(cumulative_probability)
         word_list.append(dict.get('key'))
@@ -204,10 +241,10 @@ def bigramGenerator(mapping_list, last_list, prev_word, repeat_count):
     temp_list = []
 
     for dict in mapping_list:
-        if dict.get('prev_key') == prev_word:
+        if dict.get('key') == prev_word:
             found_ones.append(dict)
         elif not dict.get('key') in temp_list:
-            temp_list.append(str(dict.get('key')))
+            temp_list.append(dict.get('key'))
 
     total_count = len(found_ones) + len(temp_list)
     temp_list.clear()
@@ -296,7 +333,6 @@ madison_trigram_word_mapping = []
 count = len(file_list)
 for file in file_list:
     author = file.readline()
-    # print(file.name + " " + author)
 
     if author.strip() == "HAMILTON":
         mappingDistributor(file, hamilton_unigram_word_mapping,
@@ -316,10 +352,9 @@ tri_list = []
 i = totalWordCountCalculator(hamilton_unigram_word_mapping)
 
 
-# unigramGenerator(hamilton_unigram_word_mapping, i)
+unigramGenerator(hamilton_unigram_word_mapping, i)
 # bigramGenerator(hamilton_bigram_word_mapping, bi_list, '<s>', 1)
 # trigramGenerator(hamilton_trigram_word_mapping, tri_list, '<s>', '<s>', 1)
 
-print(i)
-print(hamilton_unigram_word_mapping)
+# print(hamilton_unigram_word_mapping)
 
