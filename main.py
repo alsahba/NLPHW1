@@ -6,8 +6,8 @@ from Author import Author
 
 def openAllFiles(file_list):
     os.chdir("./dataset")
-    for file in glob.glob("*.txt"):
-        file_list.append(open(file, 'r'))
+    for f in glob.glob("*.txt"):
+        file_list.append(open(f, 'r'))
 
 
 def frequencyCounter(text_file, author):

@@ -23,7 +23,7 @@ class Trigram(NGram):
             else:
                 self.mapping[separated_line[i]] = {separated_line[i + 1]: {separated_line[i + 2]: 1}}
 
-    def generator(self, last_list, second_prev_word, prev_word, repeat_count=1):
+    def generator(self, final_list, second_prev_word, prev_word, repeat_count=1):
         temp_mapping = {}
 
         spec_map = self.mapping.get(second_prev_word).get(prev_word)
@@ -43,10 +43,10 @@ class Trigram(NGram):
         total_count += v_count
 
         new_word = self.generatorHelper(temp_mapping, total_count)
-        last_list.append(new_word)
+        final_list.append(new_word)
 
         if repeat_count < 30 and new_word != '</s>':
-            self.generator(last_list, prev_word, new_word, repeat_count + 1)
+            self.generator(final_list, prev_word, new_word, repeat_count + 1)
 
     def prepareFirstAndLast(self, separated_line):
         lastIndex = len(separated_line) - 1

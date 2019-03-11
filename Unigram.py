@@ -1,5 +1,4 @@
 from NGram import NGram
-import random
 
 
 class Unigram(NGram):
