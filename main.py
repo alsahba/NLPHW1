@@ -18,9 +18,7 @@ def frequencyCounter(text_file, author):
         author.trigram.prepareFirstAndLast(separated_line)
         author.bigram.prepareFirstAndLast(separated_line)
 
-        author.unigram.counter(separated_line)
-        author.bigram.counter(separated_line)
-        author.trigram.counter(separated_line)
+        author.counterCaller(separated_line)
 
 
 file_list = []
@@ -43,9 +41,7 @@ uni_list = []
 bi_list = []
 tri_list = []
 
-hamilton.unigram.generator(uni_list)
-hamilton.bigram.generator(bi_list, '<s>')
-hamilton.trigram.generator(tri_list, '<s>', '<s>')
+hamilton.generatorCaller(uni_list, bi_list, tri_list)
 
 print(*uni_list)
 print(*bi_list)
