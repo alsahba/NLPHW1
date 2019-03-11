@@ -10,12 +10,14 @@ class NGram():
         return result[i]
 
     def totalCountCalculator(self, mapping):
-        sum = 0
+        summation = 0
 
         for values in mapping.items():
-            sum += values[1]
-        return sum
+            summation += values[1]
+        return summation
 
     def counter(self, separated_line):
         pass
 
+    def prepareFirstAndLast(self, separated_line):
+        pass

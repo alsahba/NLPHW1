@@ -4,6 +4,7 @@ import glob, os
 from Unigram import Unigram
 from Bigram import Bigram
 from Trigram import Trigram
+from Author import Author
 
 
 def openAllFiles(file_list):
@@ -12,19 +13,19 @@ def openAllFiles(file_list):
         file_list.append(open(file, 'r'))
 
 
-def prepareFirstAndLastBigram(separated_line, bigram):
-    bigram.mapping['<s>'] = {separated_line[0]: 1}
-    bigram.mapping[separated_line[-1]] = {'</s>': 1}
-
-
-def preapareFirstAndLastTrigrams(separated_line, trigram):
-    lastIndex = len(separated_line) - 1
-    trigram.mapping['<s>'] = {'<s>': {separated_line[0]: 1}}
-    match = trigram.mapping.get('<s>')
-    match[separated_line[0]] = {separated_line[1]: 1}
-    trigram.mapping[separated_line[lastIndex]] = {'</s>': {'</s>': 1}}
-    trigram.mapping[separated_line[lastIndex - 1]] = {separated_line[lastIndex]: {'</s>': 1}}
-
+# def prepareFirstAndLastBigram(separated_line, bigram):
+#     bigram.mapping['<s>'] = {separated_line[0]: 1}
+#     bigram.mapping[separated_line[-1]] = {'</s>': 1}
+#
+#
+# def preapareFirstAndLastTrigrams(separated_line, trigram):
+#     lastIndex = len(separated_line) - 1
+#     trigram.mapping['<s>'] = {'<s>': {separated_line[0]: 1}}
+#     match = trigram.mapping.get('<s>')
+#     match[separated_line[0]] = {separated_line[1]: 1}
+#     trigram.mapping[separated_line[lastIndex]] = {'</s>': {'</s>': 1}}
+#     trigram.mapping[separated_line[lastIndex - 1]] = {separated_line[lastIndex]: {'</s>': 1}}
+#
 
 # def unigramCounter(separated_line, mapping):
 #     uniqWords = set(separated_line)
@@ -70,19 +71,17 @@ def preapareFirstAndLastTrigrams(separated_line, trigram):
 #                 mapping[separated_line[i]] = {separated_line[i+1]: {separated_line[i+2]: 1}}
 #
 
-def mappingDistributor(text_file, unigram, bigram, trigram):
+def frequencyCounter(text_file, author):
     for line in text_file.readlines():
-        split_line = line.split(' ')
-        split_line = list(map(lambda x: x.lower().strip(',.;:?()`\'\n[]'), split_line))
+        separated_line = line.split(' ')
+        separated_line = list(map(lambda x: x.lower().strip(',.;:?()`\"\'\n[]'), separated_line))
 
-        preapareFirstAndLastTrigrams(split_line, trigram)
-        prepareFirstAndLastBigram(split_line, bigram)
+        author.trigram.prepareFirstAndLast(separated_line)
+        author.bigram.prepareFirstAndLast(separated_line)
 
-        unigram.counter(split_line)
-        bigram.counter(split_line)
-        trigram.counter(split_line)
-
-
+        author.unigram.counter(separated_line)
+        author.bigram.counter(separated_line)
+        author.trigram.counter(separated_line)
 # def boundaries(num, breakpoints, result):
 #     i = bisect.bisect(breakpoints, num)
 #     if i > len(result):
@@ -192,36 +191,29 @@ def mappingDistributor(text_file, unigram, bigram, trigram):
 #
 #     if repeat_count < 30 and new_word != '</s>':
 #         trigramGenerator(mapping, last_list, prev_word, new_word, repeat_count + 1)
-
-
 file_list = []
 openAllFiles(file_list)
 
-h_unigram = Unigram()
-m_unigram = Unigram()
-h_bigram = Bigram()
-m_bigram = Bigram()
-h_trigram = Trigram()
-m_trigram = Trigram()
-
+hamilton = Author()
+madison = Author()
 
 for file in file_list:
     author = file.readline()
 
     if author.strip() == "HAMILTON":
-        mappingDistributor(file, h_unigram, h_bigram, h_trigram)
+        frequencyCounter(file, hamilton)
 
     else:
-        mappingDistributor(file, m_unigram, m_bigram, m_trigram)
+        frequencyCounter(file, madison)
 
 
-liste = h_unigram.generator()
+liste = hamilton.unigram.generator()
 
 bi_list = []
 tri_list = []
 
-h_bigram.generator(bi_list, '<s>', 1)
-h_trigram.generator(tri_list, '<s>', '<s>', 1)
+hamilton.bigram.generator(bi_list, '<s>', 1)
+hamilton.trigram.generator(tri_list, '<s>', '<s>', 1)
 print(*liste)
 print(*bi_list)
 print(*tri_list)

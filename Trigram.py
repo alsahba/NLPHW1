@@ -10,7 +10,7 @@ class Trigram(NGram):
 
     def counter(self, separated_line):
         for i in range(len(separated_line)):
-            if i + 2 < len(separated_line) and separated_line[i] != '' and separated_line != '\"':
+            if i + 2 < len(separated_line):
                 if self.mapping.get(separated_line[i]):
                     dict_layer_1 = self.mapping.get(separated_line[i])
                     if dict_layer_1.get(separated_line[i + 1]):
@@ -61,3 +61,11 @@ class Trigram(NGram):
 
         if repeat_count < 30 and new_word != '</s>':
             self.generator(last_list, prev_word, new_word, repeat_count + 1)
+
+    def prepareFirstAndLast(self, separated_line):
+        lastIndex = len(separated_line) - 1
+        self.mapping['<s>'] = {'<s>': {separated_line[0]: 1}}
+        match = self.mapping.get('<s>')
+        match[separated_line[0]] = {separated_line[1]: 1}
+        self.mapping[separated_line[lastIndex]] = {'</s>': {'</s>': 1}}
+        self.mapping[separated_line[lastIndex - 1]] = {separated_line[lastIndex]: {'</s>': 1}}

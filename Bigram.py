@@ -55,3 +55,7 @@ class Bigram(NGram):
 
         if repeat_count < 30 and new_word != '</s>':
             self.generator(last_list, new_word, repeat_count + 1)
+
+    def prepareFirstAndLast(self, separated_line):
+        self.mapping['<s>'] = {separated_line[0]: 1}
+        self.mapping[separated_line[-1]] = {'</s>': 1}
