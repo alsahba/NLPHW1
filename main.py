@@ -9,10 +9,24 @@ def openAllFiles(file_list):
         file_list.append(open(file, 'r'))
 
 
-def preCountWords(separated_line, mapping_list):
+
+def prepareFirstAndLastBigram(separated_line, mapping):
+    mapping['<s>'] = {separated_line[0]: 1}
+    mapping['</s>'] = {separated_line[-1]: 1}
+
+
+def preapareFirstAndLastTrigrams(separated_line, mapping):
+    lastIndex = len(separated_line) - 1
+    mapping['<s>'] = {'<s>': {separated_line[0]: 1}}
+    mapping['<s>'] = {separated_line[0]: {separated_line[1]: 1}}
+    mapping[separated_line[lastIndex]] = {'</s>': {'</s>': 1}}
+    mapping[separated_line[lastIndex - 1]] = {separated_line[lastIndex]: {'</s>': 1}}
+
+
+def preCountWords(separated_line, mapping):
     uniqWords = set(separated_line)
     for word in uniqWords:
-        countWords(mapping_list, word, separated_line.count(word))
+        countWords(mapping, word, separated_line.count(word))
 
 
 def newBigramCounter(separated_line, mapping):
@@ -49,13 +63,17 @@ def newTrigramCounter(separated_line, mapping):
                 mapping[separated_line[i]] = {separated_line[i+1]: {separated_line[i+2]: 1}}
 
 
-def mappingDistributor(text_file, unigram_mapping_list, bigram_mapping_list, trigram_mapping_list):
+def mappingDistributor(text_file, unigram_mapping, bigram_mapping, trigram_mapping):
     for line in text_file.readlines():
         split_line = line.split(' ')
         split_line = list(map(lambda x: x.lower().strip(',.;:?()`'), split_line))
-        preCountWords(split_line, unigram_mapping_list)
-        newBigramCounter(split_line, bigram_mapping_list)
-        newTrigramCounter(split_line, trigram_mapping_list)
+
+        preapareFirstAndLastTrigrams(split_line, trigram_mapping)
+        prepareFirstAndLastBigram(split_line, bigram_mapping)
+
+        preCountWords(split_line, unigram_mapping)
+        newBigramCounter(split_line, bigram_mapping)
+        newTrigramCounter(split_line, trigram_mapping)
 
 
 def countWords(mapping_list, key, count):
@@ -216,7 +234,7 @@ print(*liste)
 bi_list = []
 tri_list = []
 
-bigramGenerator(hamilton_bigram_word_mapping, bi_list, 'to', 1)
+bigramGenerator(hamilton_bigram_word_mapping, bi_list, '<s>', 1)
 print(*bi_list)
 print(len(bi_list))
 # trigramGenerator(hamilton_trigram_word_mapping, tri_list, '<s>', '<s>', 1)
