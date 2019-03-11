@@ -23,7 +23,7 @@ class Trigram(NGram):
             else:
                 self.mapping[separated_line[i]] = {separated_line[i + 1]: {separated_line[i + 2]: 1}}
 
-    def generator(self, last_list, second_prev_word, prev_word, repeat_count):
+    def generator(self, last_list, second_prev_word, prev_word, repeat_count=1):
         temp_mapping = {}
 
         spec_map = self.mapping.get(second_prev_word).get(prev_word)

@@ -17,7 +17,7 @@ class Bigram(NGram):
             else:
                 self.mapping[separated_line[i]] = {separated_line[i + 1]: 1}
 
-    def generator(self, last_list, prev_word, repeat_count):
+    def generator(self, last_list, prev_word, repeat_count=1):
         temp_mapping = {}
 
         spec_map = self.mapping.get(prev_word)

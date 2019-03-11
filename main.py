@@ -1,9 +1,6 @@
 import glob, os
 
 
-from Unigram import Unigram
-from Bigram import Bigram
-from Trigram import Trigram
 from Author import Author
 
 
@@ -42,14 +39,18 @@ for file in file_list:
         frequencyCounter(file, madison)
 
 
-liste = hamilton.unigram.generator()
-
+uni_list = []
 bi_list = []
 tri_list = []
 
-hamilton.bigram.generator(bi_list, '<s>', 1)
-hamilton.trigram.generator(tri_list, '<s>', '<s>', 1)
-print(*liste)
+hamilton.unigram.generator(uni_list)
+hamilton.bigram.generator(bi_list, '<s>')
+hamilton.trigram.generator(tri_list, '<s>', '<s>')
+
+print(*uni_list)
 print(*bi_list)
 print(*tri_list)
+print(len(uni_list))
+print(len(bi_list))
+print(len(tri_list))
 
