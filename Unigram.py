@@ -5,6 +5,10 @@ class Unigram(NGram):
 
     mapping = {}
 
+    def __init__(self, uni_map = {}):
+        self.mapping = uni_map
+
+
     def counter(self, separated_line):
         unique_words = set(separated_line)
         for word in unique_words:

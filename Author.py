@@ -5,16 +5,32 @@ from Trigram import Trigram
 
 class Author:
 
-    unigram = Unigram()
-    bigram = Bigram()
-    trigram = Trigram()
+    __name = ""
+    __unigram = Unigram()
+    __bigram = Bigram()
+    __trigram = Trigram()
+
+    def __init__(self, name):
+        self.__name = name
+        self.__unigram = Unigram({})
+        self.__bigram = Bigram({})
+        self.__trigram = Trigram({})
+
+    def getUnigram(self):
+        return self.__unigram
+
+    def getBigram(self):
+        return self.__bigram
+
+    def getTrigram(self):
+        return self.__trigram
 
     def counterCaller(self, separated_line):
-        self.unigram.counter(separated_line)
-        self.bigram.counter(separated_line)
-        self.trigram.counter(separated_line)
+        self.__unigram.counter(separated_line)
+        self.__bigram.counter(separated_line)
+        self.__trigram.counter(separated_line)
 
     def generatorCaller(self, uni_list, bi_list, tri_list):
-        self.unigram.generator(uni_list)
-        self.bigram.generator(bi_list, '<s>')
-        self.trigram.generator(tri_list, '<s>', '<s>')
+        self.__unigram.generator(uni_list)
+        self.__bigram.generator(bi_list)
+        self.__trigram.generator(tri_list)

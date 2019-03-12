@@ -3,6 +3,9 @@ import random
 
 class NGram():
 
+    def __init__(self):
+        pass
+
     def boundaries(self, num, breakpoints, result):
         i = bisect.bisect(breakpoints, num)
         if i > len(result):
