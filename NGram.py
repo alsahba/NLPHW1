@@ -1,7 +1,7 @@
 import bisect
 import random
 
-class NGram():
+class NGram(object):
 
     def __init__(self):
         pass

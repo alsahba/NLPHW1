@@ -3,7 +3,7 @@ from Bigram import Bigram
 from Trigram import Trigram
 
 
-class Author:
+class Author(object):
 
     __name = ""
     __unigram = Unigram()
@@ -12,9 +12,9 @@ class Author:
 
     def __init__(self, name):
         self.__name = name
-        self.__unigram = Unigram({})
-        self.__bigram = Bigram({})
-        self.__trigram = Trigram({})
+        self.__unigram = Unigram()
+        self.__bigram = Bigram()
+        self.__trigram = Trigram()
 
     def getUnigram(self):
         return self.__unigram

@@ -1,12 +1,12 @@
 from NGram import NGram
 
 
-class Unigram(NGram):
+class Unigram(NGram, object):
 
     mapping = {}
 
-    def __init__(self, uni_map = {}):
-        self.mapping = uni_map
+    def __init__(self):
+        self.mapping = {}
 
 
     def counter(self, separated_line):

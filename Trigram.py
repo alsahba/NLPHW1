@@ -1,12 +1,12 @@
 from NGram import NGram
 
 
-class Trigram(NGram):
+class Trigram(NGram, object):
 
     mapping = {}
 
-    def __init__(self, tri_map={}):
-        self.mapping = tri_map
+    def __init__(self):
+        self.mapping = {}
 
     def counter(self, separated_line):
         for i in range(len(separated_line) - 2):
