@@ -12,14 +12,11 @@ class Bigram(NGram, object):
 
     def counter(self, separated_line):
         for i in range(len(separated_line) - 1):
+
             current_word = separated_line[i]
-
-            if current_word.strip('.,:?;') == "publius":
-                break
-
             next_word = separated_line[i + 1]
             self.helper(current_word, next_word)
-            renewed_current_word =  current_word.replace(".","")
+            renewed_current_word = current_word.replace(".","")
 
             if self.mapping.get(renewed_current_word):
                 secondary_dictionary = self.mapping.get(renewed_current_word)
@@ -60,17 +57,16 @@ class Bigram(NGram, object):
         self.mapping['<s>'] = {separated_line[0].strip("."): 1}
         self.mapping[separated_line[-1].strip(".")] = {'</s>': 1}
 
-    def calculateProbabilityOfNextWord(self, perplexity, totalBigramCount, current_word, prev_word='<s>'):
-        total_count_junction = 1
-        total_count_prev_word = 0
-
+    def calculateProbabilityOfNextWord(self, total_bigram_count, current_word, prev_word='<s>'):
         prev_map = self.mapping.get(prev_word)
         if prev_map is None:
-            return 1 / totalBigramCount
+            return 1 / total_bigram_count
+
+        total_count_junction = 1
+        total_count_prev_word = self.totalCountCalculator(prev_map)
 
         if prev_map.get(current_word):
             total_count_junction = prev_map[current_word]
-            total_count_prev_word = self.totalCountCalculator(prev_map)
 
         else:
             total_count_prev_word += len(prev_map)
@@ -80,21 +76,24 @@ class Bigram(NGram, object):
     def helper(self, word, next_word):
         if '.' in word:
             prev_spec_map = self.mapping.get(word)
-            if prev_spec_map is not None and prev_spec_map.get('</s>'):
-                prev_spec_map['</s>'] += 1
-            else:
-                if prev_spec_map is None:
-                    prev_spec_map = {}
+
+            if prev_spec_map is None:
+                self.mapping[word] = {'</s>': 1}
+
+            elif prev_spec_map is not None and not prev_spec_map.get('</s>'):
                 prev_spec_map['</s>'] = 1
+
+            elif prev_spec_map is not None and prev_spec_map.get('</s>'):
+                prev_spec_map['</s>'] += 1
 
             spec_map = self.mapping.get('<s>')
 
-            if spec_map is not None and spec_map.get(next_word):
+            if spec_map.get(next_word):
                 spec_map[next_word] += 1
+
             else:
-                if spec_map is None:
-                    spec_map = {}
                 spec_map[next_word] = 1
+
 
     def totalBigramCalculator(self):
         sum = 0

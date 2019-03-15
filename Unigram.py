@@ -12,6 +12,9 @@ class Unigram(NGram, object):
     def counter(self, separated_line):
         unique_words = set(separated_line)
         for word in unique_words:
+            if "." in word:
+                word = word.replace(".", "")
+
             if self.mapping.get(word):
                 self.mapping[word] += separated_line.count(word)
 
