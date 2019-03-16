@@ -1,5 +1,4 @@
 import math
-
 from NGram import NGram
 
 
@@ -76,14 +75,23 @@ class Trigram(NGram, object):
         self.mapping[separated_line[lastIndex]] = {'</s>': {'</s>': 1}}
         self.mapping[separated_line[lastIndex - 1]] = {separated_line[lastIndex]: {'</s>': 1}}
 
+    def uniqueTrigramCounter(self):
+        summation = 0
+
+        for first_layer_map in self.mapping.items():
+            for second_layer_map in first_layer_map[1].items():
+                summation += len(second_layer_map)
+
+        return summation
+
     def calculateProbabilityOfNextWord(self, total_trigram_count, current_word, prev_word='<s>', second_prev_word='<s>'):
         second_prev_map = self.mapping.get(second_prev_word)
         if second_prev_map is None:
-            return 1 / total_trigram_count
+            return 1 / (total_trigram_count + len(self.mapping))
 
         prev_map = second_prev_map.get(prev_word)
-        if prev_map is None: #todo var burada
-            return 1 / (total_trigram_count / 3)
+        if prev_map is None:
+            return 1 / len(second_prev_map)
 
         total_count_junction = 1
         total_count_prev_word = self.totalCountCalculator(prev_map)
@@ -98,48 +106,104 @@ class Trigram(NGram, object):
 
     def helper(self, prev_word, current_word, next_word, second_next_word):
         if '.' in current_word:
+            prev_word = prev_word.replace(".", "")
+            current_word = current_word.replace(".", "")
+            next_word = next_word.replace(".", "")
+            second_next_word = second_next_word.replace(".", "")
+
             cur_spec_map = self.mapping.get(current_word)
             prev_spec_map = self.mapping.get(prev_word)
             start_spec_map = self.mapping.get('<s>')
 
+            # s s next word
+            if start_spec_map.get('<s>') is None:
+                start_spec_map['<s>'] = {next_word: 1}
+
+            else:
+                if start_spec_map.get('<s>').get(next_word) is None:
+                    start_spec_map.get('<s>')[next_word] = 1
+
+                else:
+                    start_spec_map.get('<s>')[next_word] += 1
+
+            # s next_word second_next_word
+            if start_spec_map.get(next_word) is None:
+                start_spec_map[next_word] = {second_next_word: 1}
+
+            else:
+                if start_spec_map.get(next_word).get(second_next_word) is None:
+                    start_spec_map.get(next_word)[second_next_word] = 1
+
+                else:
+                    start_spec_map.get('<s>')[next_word] += 1
+
+
+            # prev cur /s
             if prev_spec_map is None:
                 self.mapping[prev_word] = {current_word: {'</s>': 1}}
 
             else:
-                temp_spec_map = prev_spec_map.get(current_word)
-                if temp_spec_map is None:
+                if prev_spec_map.get(current_word) is None:
                     prev_spec_map[current_word] = {'</s>': 1}
 
-                elif temp_spec_map is not None and not temp_spec_map.get('</s>'):
-                    temp_spec_map['</s>'] = 1
-
                 else:
-                    temp_spec_map['</s>'] += 1
+                    if prev_spec_map.get(current_word).get('</s>') is None:
+                        prev_spec_map.get(current_word)['</s>'] = 1
 
+                    else:
+                        prev_spec_map.get(current_word)['</s>'] += 1
+
+
+            # cur /s /s
             if cur_spec_map is None:
-                self.mapping[current_word] = {next_word: {'</s>': 1}}
+                self.mapping[current_word] = {'</s>': {'</s>': 1}}
 
             else:
-                temp_spec_map = cur_spec_map.get(next_word)
-
-                if temp_spec_map is None:
-                    cur_spec_map[next_word] = {'</s>': 1}
-
-                elif temp_spec_map is not None and not temp_spec_map.get('</s>'):
-                    temp_spec_map['</s>'] = 1
+                if cur_spec_map.get('</s>') is None:
+                    cur_spec_map['</s>'] = {'</s>': 1}
 
                 else:
-                    temp_spec_map['</s>'] += 1
+                    if cur_spec_map.get('</s>').get('</s>') is None:
+                        cur_spec_map.get('</s>')['</s>'] = 1
 
-            next_spec_map = start_spec_map.get(next_word)
+                    else:
+                        cur_spec_map.get('</s>')['</s>'] += 1
 
-            if next_spec_map is None:
-                start_spec_map[next_word] = {second_next_word: 1}
+    def totalTrigramCalculator(self):
+        summation = 0
+
+        for first_layer_map in self.mapping.items():
+            for second_layer_map in first_layer_map[1].items():
+                summation += second_layer_map[1]
+
+        return summation
+
+    def perplexityCalculator(self, separated_line):
+        total_trigram = self.totalTrigramCalculator()
+        total_probability = 0
+
+        total_probability += self.calculateProbabilityOfNextWord(
+            total_trigram, separated_line[0])
+
+        for i in range(len(separated_line) - 1):
+            prev_word = separated_line[i]
+            next_word = separated_line[i + 1]
+
+            if '.' in prev_word:
+                renewed_prev_word = prev_word.replace(".", "")
+                renewed_current_word = next_word.replace(".", "")
+
+                total_probability += self.calculateProbabilityOfNextWord(
+                    total_trigram, renewed_current_word)
+
+                total_probability += self.calculateProbabilityOfNextWord(
+                    total_trigram, '</s>', renewed_prev_word)
+
 
             else:
-                if next_spec_map.get(second_next_word):
-                    next_spec_map[second_next_word] += 1
-                else:
-                    next_spec_map[second_next_word] = 1
+                renewed_current_word = next_word.replace(".", "")
 
+                total_probability += self.calculateProbabilityOfNextWord(
+                    total_trigram, renewed_current_word, prev_word)
 
+        return total_probability
