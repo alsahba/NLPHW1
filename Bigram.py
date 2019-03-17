@@ -105,18 +105,21 @@ class Bigram(NGram, object):
                 renewed_prev_word = prev_word.replace(".", "")
                 renewed_current_word = current_word.replace(".", "")
 
-                total_probability += self.calculateProbability(
-                    total_bigram, renewed_current_word)
+                total_probability += self.calculateProbability(total_bigram, renewed_current_word)
 
-                total_probability += self.calculateProbability(
-                    total_bigram, '</s>', renewed_prev_word)
+                total_probability += self.calculateProbability(total_bigram, '</s>', renewed_prev_word)
 
+            elif '.' in current_word:
+                renewed_prev_word = prev_word.replace(".", "")
+                renewed_current_word = current_word.replace(".", "")
+
+                total_probability += self.calculateProbability(total_bigram, renewed_current_word, renewed_prev_word)
+                total_probability += self.calculateProbability(total_bigram, '</s>', renewed_current_word)
 
             else:
                 renewed_current_word = current_word.replace(".", "")
 
-                total_probability += self.calculateProbability(
-                    total_bigram, renewed_current_word, prev_word)
+                total_probability += self.calculateProbability(total_bigram, renewed_current_word, prev_word)
 
         var = float(-1 / len(separated_line))
         perplexity = pow(2, var * total_probability)
