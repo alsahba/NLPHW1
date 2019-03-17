@@ -143,7 +143,7 @@ hamilton.generatorCaller(uni_list, bi_list, tri_list)
 
 fire_list = []
 openAllTestFiles(fire_list)
-fire = fire_list[4]
+fire = fire_list[5]
 print(fire.readline())
 
 hamilton_trigram_total_probability = 0
@@ -152,37 +152,16 @@ madison_trigram_total_probability = 0
 hamilton_total_probability = 0
 madison_total_probability = 0
 
+mapo = madison.getTrigram().mapping.get('<s>')
+
 for line in fire.readlines():
     separated_line = prepareLine(line)
 
     hamilton_total_probability = hamilton.getBigram().perplexityCalculator(separated_line)
     madison_total_probability = madison.getBigram().perplexityCalculator(separated_line)
 
-    # for i in range(len(separated_line) - 2):
-    #     prev_word = separated_line[i]
-    #     next_word = separated_line[i + 1]
-    #
-    #     if '.' in prev_word:
-    #         prev_word = prev_word.replace(".", "")
-    #         next_word = next_word.replace(".", "")
-    #
-    #         hamilton_trigram_total_probability += hamilton.getTrigram().calculateProbabilityOfNextWord(60000,
-    #                                                                                                    separated_line[
-    #                                                                                                        i + 2],
-    #                                                                                                    separated_line[
-    #                                                                                                        i + 1])
-    #         madison_trigram_total_probability += madison.getTrigram().calculateProbabilityOfNextWord(60000,
-    #                                                                                                  separated_line[
-    #                                                                                                      i + 2],
-    #                                                                                                  separated_line[
-    #                                                                                                      i + 1])
-    #     else:
-    #         hamilton_trigram_total_probability += hamilton.getTrigram().calculateProbabilityOfNextWord(60000,
-    #             separated_line[i + 2], separated_line[i + 1], separated_line[i])
-    #         madison_trigram_total_probability += madison.getTrigram().calculateProbabilityOfNextWord(60000,
-    #             separated_line[i + 2], separated_line[i + 1], separated_line[i])
-
-
+    madison_trigram_total_probability = madison.getTrigram().perplexityCalculator(separated_line)
+    hamilton_trigram_total_probability = hamilton.getTrigram().perplexityCalculator(separated_line)
 
 var = float(-1/len(separated_line))
 hamilton_total_probability = var * hamilton_total_probability
@@ -200,14 +179,11 @@ madison_trigram_total_probability = pow(2, madison_trigram_total_probability)
 
 print("hamilton_total_probability: {}, madison_total_probability: {}".format(hamilton_total_probability, madison_total_probability))
 
-
-
-
-# print("hamilton_trigram_probability: {}, madison_trigram_probability: {}".format(hamilton_trigram_total_probability,
-#                                                                                  madison_trigram_total_probability))
-# print(*uni_list)
-# print(*bi_list)
-# print(*tri_list)
+print("hamilton_trigram_probability: {}, madison_trigram_probability: {}".format(hamilton_trigram_total_probability,
+                                                                                 madison_trigram_total_probability))
+print(*uni_list)
+print(*bi_list)
+print(*tri_list)
 # print(len(uni_list))
 # print(len(bi_list))
 # print(len(tri_list))

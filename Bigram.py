@@ -122,11 +122,11 @@ class Bigram(NGram, object):
 
         for i in range(len(separated_line) - 1):
             prev_word = separated_line[i]
-            next_word = separated_line[i + 1]
+            current_word = separated_line[i + 1]
 
             if '.' in prev_word:
                 renewed_prev_word = prev_word.replace(".", "")
-                renewed_current_word = next_word.replace(".", "")
+                renewed_current_word = current_word.replace(".", "")
 
                 total_probability += self.calculateProbabilityOfNextWord(
                     total_bigram, renewed_current_word)
@@ -136,7 +136,7 @@ class Bigram(NGram, object):
 
 
             else:
-                renewed_current_word = next_word.replace(".", "")
+                renewed_current_word = current_word.replace(".", "")
 
                 total_probability += self.calculateProbabilityOfNextWord(
                     total_bigram, renewed_current_word, prev_word)
