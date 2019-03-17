@@ -25,6 +25,9 @@ class Author(object):
     def getTrigram(self):
         return self.__trigram
 
+    def getName(self):
+        return self.__name
+
     def counterCaller(self, separated_line):
         self.__unigram.counter(separated_line)
         self.__bigram.counter(separated_line)

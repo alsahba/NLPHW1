@@ -1,5 +1,4 @@
 import math
-
 from NGram import NGram
 
 
@@ -15,7 +14,7 @@ class Bigram(NGram, object):
 
             current_word = separated_line[i]
             next_word = separated_line[i + 1]
-            self.helper(current_word, next_word)
+            self.dotHandler(current_word, next_word)
 
             renewed_current_word = current_word.replace(".", "")
             renewed_next_word = next_word.replace(".", "")
@@ -30,24 +29,15 @@ class Bigram(NGram, object):
             else:
                 self.mapping[renewed_current_word] = {renewed_next_word: 1}
 
-    def generator(self, final_list, prev_word='<s>', repeat_count=1):
+    def generator(self, final_list, current_word='<s>', repeat_count=1):
         temp_mapping = {}
 
-        spec_map = self.mapping.get(prev_word)
-        if spec_map is None:
-            spec_map = {}
+        spec_map = self.mapping.get(current_word)
 
         total_count = self.totalCountCalculator(spec_map)
-        v_count = 0
 
-        for values in self.mapping.items():
-            if spec_map.get(values[0]):
-                temp_mapping[values[0]] = spec_map.get(values[0]) + 1
-            else:
-                temp_mapping[values[0]] = 1
-                v_count += 1
-
-        total_count += v_count
+        for values in spec_map.items():
+            temp_mapping[values[0]] = values[1]
 
         new_word = self.generatorHelper(temp_mapping, total_count)
         final_list.append(new_word)
@@ -55,23 +45,18 @@ class Bigram(NGram, object):
         if repeat_count < 30 and new_word != '</s>':
             self.generator(final_list, new_word, repeat_count + 1)
 
+        if new_word == '</s>':
+            final_list.pop(len(final_list) - 1)
+
     def prepareFirstAndLast(self, separated_line):
         self.mapping['<s>'] = {separated_line[0].replace(".", ""): 1}
         self.mapping[separated_line[-1].replace(".", "")] = {'</s>': 1}
 
-    def uniqueBigramCounter(self):
-        unique_count = 0
-
-        for second_mapping in self.mapping.items():
-            unique_count += len(second_mapping)
-
-        return unique_count
-
-    def calculateProbabilityOfNextWord(self, total_bigram_count, current_word, prev_word='<s>'):
+    def calculateProbability(self, total_bigram_count, current_word, prev_word='<s>'):
 
         prev_map = self.mapping.get(prev_word)
         if prev_map is None:
-            return math.log2(1 / (total_bigram_count + self.uniqueBigramCounter()))
+            return math.log2(1 / (total_bigram_count + self.uniqueBigramCounter(self.mapping)))
 
         total_count_junction = 1
         total_count_prev_word = self.totalCountCalculator(prev_map) + len(prev_map)
@@ -81,7 +66,7 @@ class Bigram(NGram, object):
 
         return math.log2(total_count_junction/total_count_prev_word)
 
-    def helper(self, prev_word, current_word):
+    def dotHandler(self, prev_word, current_word):
         if '.' in prev_word:
             prev_word = prev_word.replace(".", "")
             prev_spec_map = self.mapping.get(prev_word)
@@ -105,19 +90,11 @@ class Bigram(NGram, object):
             else:
                 spec_map[current_word] = 1
 
-    def totalBigramCalculator(self):
-        sum = 0
-        for first in self.mapping.items():
-            dictionary  = first[1]
-            for second in dictionary.items():
-                sum += second[1]
-        return sum
-
     def perplexityCalculator(self, separated_line):
-        total_bigram = self.totalBigramCalculator()
+        total_bigram = self.totalBigramCounter(self.mapping)
         total_probability = 0
 
-        total_probability += self.calculateProbabilityOfNextWord(
+        total_probability += self.calculateProbability(
             total_bigram, separated_line[0])
 
         for i in range(len(separated_line) - 1):
@@ -128,17 +105,19 @@ class Bigram(NGram, object):
                 renewed_prev_word = prev_word.replace(".", "")
                 renewed_current_word = current_word.replace(".", "")
 
-                total_probability += self.calculateProbabilityOfNextWord(
+                total_probability += self.calculateProbability(
                     total_bigram, renewed_current_word)
 
-                total_probability += self.calculateProbabilityOfNextWord(
+                total_probability += self.calculateProbability(
                     total_bigram, '</s>', renewed_prev_word)
 
 
             else:
                 renewed_current_word = current_word.replace(".", "")
 
-                total_probability += self.calculateProbabilityOfNextWord(
+                total_probability += self.calculateProbability(
                     total_bigram, renewed_current_word, prev_word)
 
-        return total_probability
+        var = float(-1 / len(separated_line))
+        perplexity = pow(2, var * total_probability)
+        return perplexity

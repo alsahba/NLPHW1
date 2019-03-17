@@ -16,32 +16,29 @@ class Trigram(NGram, object):
             current_word = separated_line[i + 1]
             next_word = separated_line[i + 2]
 
-            self.helper(prev_word, current_word, next_word)
+            self.dotHandler(prev_word, current_word, next_word)
 
-    def generator(self, final_list, second_prev_word='<s>', prev_word='<s>', repeat_count=1):
+    def generator(self, final_list, prev_word='<s>', second_prev_word='<s>', repeat_count=1):
         temp_mapping = {}
-
+        #todo burada hata atti bir kere tam incelemek lazim
         spec_map = self.mapping.get(second_prev_word).get(prev_word)
+
         if spec_map is None:
             spec_map = {}
 
         total_count = self.totalCountCalculator(spec_map)
-        v_count = 0
 
-        for values in self.mapping.items():
-            if spec_map.get(values[0]):
-                temp_mapping[values[0]] = spec_map.get(values[0]) + 1
-            else:
-                temp_mapping[values[0]] = 1
-                v_count += 1
-
-        total_count += v_count
+        for values in spec_map.items():
+            temp_mapping[values[0]] = values[1]
 
         new_word = self.generatorHelper(temp_mapping, total_count)
         final_list.append(new_word)
 
         if repeat_count < 30 and new_word != '</s>':
-            self.generator(final_list, prev_word, new_word, repeat_count + 1)
+            self.generator(final_list, new_word, prev_word, repeat_count + 1)
+
+        if new_word == '</s>':
+            final_list.pop(len(final_list) - 1)
 
     def prepareFirstAndLast(self, separated_line):
         lastIndex = len(separated_line) - 1
@@ -51,34 +48,10 @@ class Trigram(NGram, object):
         self.mapping[separated_line[lastIndex]] = {'</s>': {'</s>': 1}}
         self.mapping[separated_line[lastIndex - 1]] = {separated_line[lastIndex]: {'</s>': 1}}
 
-    def uniqueTrigramCounter(self):
-        summation = 0
-
-        for first_layer_map in self.mapping.items():
-            for second_layer_map in first_layer_map[1].items():
-                summation += len(second_layer_map)
-
-        return summation
-
-    def totalBigramCounter(self, mapping):
-        sum = 0
-        for first in mapping.items():
-            for second in first[1].items():
-                sum += second[1]
-        return sum
-
-    def uniqueBigramCounter(self, mapping):
-        unique_count = 0
-
-        for second_mapping in mapping.items():
-            unique_count += len(second_mapping)
-
-        return unique_count
-
-    def calculateProbabilityOfNextWord(self, total_trigram_count, current_word, prev_word='<s>', second_prev_word='<s>'):
+    def calculateProbability(self, total_trigram_count, current_word, prev_word='<s>', second_prev_word='<s>'):
         second_prev_map = self.mapping.get(second_prev_word)
         if second_prev_map is None:
-            return math.log2(float(1 / (total_trigram_count + self.uniqueTrigramCounter())))
+            return math.log2(float(1 / (total_trigram_count + self.uniqueTrigramCounter(self.mapping))))
 
         prev_map = second_prev_map.get(prev_word)
         if prev_map is None:
@@ -92,7 +65,7 @@ class Trigram(NGram, object):
 
         return math.log2(float(total_count_junction/total_count_prev_word))
 
-    def helper(self, prev_word, current_word, next_word):
+    def dotHandler(self, prev_word, current_word, next_word):
         if '.' in prev_word:
             renewed_prev_word = prev_word.replace(".", "")
             renewed_current_word = current_word.replace(".", "")
@@ -162,24 +135,14 @@ class Trigram(NGram, object):
             else:
                 self.mapping[renewed_prev_word] = {renewed_current_word: {renewed_next_word: 1}}
 
-    def totalTrigramCalculator(self):
-        summation = 0
-
-        for first_layer_map in self.mapping.items():
-            for second_layer_map in first_layer_map[1].items():
-                for third_layer_map in second_layer_map[1].items():
-                    summation += third_layer_map[1]
-
-        return summation
-
     def perplexityCalculator(self, separated_line):
-        total_trigram = self.totalTrigramCalculator()
+        total_trigram = self.totalTrigramCounter(self.mapping)
         total_probability = 0
 
-        total_probability += self.calculateProbabilityOfNextWord(
+        total_probability += self.calculateProbability(
             total_trigram, separated_line[0])
 
-        total_probability += self.calculateProbabilityOfNextWord(
+        total_probability += self.calculateProbability(
             total_trigram, separated_line[1], separated_line[0])
 
         for i in range(2, len(separated_line)):
@@ -193,15 +156,15 @@ class Trigram(NGram, object):
                 renewed_current_word = current_word.replace(".", "")
 
                 #cur prev sec_prev
-                total_probability += self.calculateProbabilityOfNextWord(
+                total_probability += self.calculateProbability(
                     total_trigram, renewed_current_word, renewed_prev_word, renewed_second_prev_word)
 
                 #/s cur prev
-                total_probability += self.calculateProbabilityOfNextWord(
+                total_probability += self.calculateProbability(
                     total_trigram, '</s>', renewed_current_word, renewed_prev_word)
 
                 #/s /s cur
-                total_probability += self.calculateProbabilityOfNextWord(
+                total_probability += self.calculateProbability(
                     total_trigram, '</s>', '</s>', renewed_current_word)
 
             elif '.' in prev_word:
@@ -210,15 +173,15 @@ class Trigram(NGram, object):
                 renewed_current_word = current_word.replace(".", "")
 
                 #/s prev sec_prev
-                total_probability += self.calculateProbabilityOfNextWord(
+                total_probability += self.calculateProbability(
                     total_trigram, '</s>', renewed_prev_word, renewed_second_prev_word)
 
                 #cur s s
-                total_probability += self.calculateProbabilityOfNextWord(
+                total_probability += self.calculateProbability(
                     total_trigram, renewed_current_word)
 
                 #/s /s prev
-                total_probability += self.calculateProbabilityOfNextWord(
+                total_probability += self.calculateProbability(
                     total_trigram, '</s>', '</s>', renewed_prev_word)
 
             elif '.' in second_prev_word:
@@ -227,20 +190,22 @@ class Trigram(NGram, object):
                 renewed_current_word = current_word.replace(".", "")
 
                 # /s /s sec_prev
-                total_probability += self.calculateProbabilityOfNextWord(
+                total_probability += self.calculateProbability(
                     total_trigram, '</s>', '</s>', renewed_second_prev_word)
 
                 #prev s s
-                total_probability += self.calculateProbabilityOfNextWord(
+                total_probability += self.calculateProbability(
                     total_trigram, renewed_prev_word)
 
                 #cur prev s
-                total_probability += self.calculateProbabilityOfNextWord(
+                total_probability += self.calculateProbability(
                     total_trigram, renewed_current_word, renewed_prev_word)
 
             else:
                 # cur prev sec_prev
-                total_probability += self.calculateProbabilityOfNextWord(
+                total_probability += self.calculateProbability(
                     total_trigram, current_word, prev_word, second_prev_word)
 
-        return total_probability
+        var = float(-1 / len(separated_line))
+        perplexity = pow(2, var * total_probability)
+        return perplexity

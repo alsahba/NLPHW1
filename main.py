@@ -1,5 +1,4 @@
-import glob, os, re
-
+import glob, os
 from Author import Author
 
 
@@ -25,7 +24,7 @@ def prepareLine(line):
     return line.split()
 
 
-def openAllFiles(file_list):
+def openAllTrainFiles(file_list):
     os.chdir("./dataset")
     for f in glob.glob("*.txt"):
         file_list.append(open(f, 'r'))
@@ -47,84 +46,70 @@ def frequencyCounter(text_file, author):
         author.counterCaller(separated_line)
 
 
-def uniqueBigramCounter(bigram):
-    unique_count = 0
+def classifyAuthor(n_gram, author_name, madison_perplexity, hamilton_perplexity):
 
-    for second_mapping in bigram.mapping.items():
-        unique_count += len(second_mapping)
+    if madison_perplexity < hamilton_perplexity:
+        detected_author = "Madison"
+    else:
+        detected_author = "Hamilton"
 
-    return unique_count
+    if author_name.lower().strip() == detected_author.lower():
+        detection = "Successful detection!"
+    else:
+        detection = "Unsuccessful detection!"
 
-
-def bigramTotalProbability(separated_line, hamilton_total_probability=0, madison_total_probability=0):
-    totalBigramMadi = madison.getBigram().totalBigramCalculator()
-    totalBigramHami = hamilton.getBigram().totalBigramCalculator()
-
-    madison_total_probability += madison.getBigram().calculateProbabilityOfNextWord(
-        totalBigramMadi, separated_line[0])
-    hamilton_total_probability += hamilton.getBigram().calculateProbabilityOfNextWord(
-        totalBigramHami, separated_line[0])
-
-    for i in range(len(separated_line) - 1):
-        prev_word = separated_line[i]
-        next_word = separated_line[i + 1]
-
-        if '.' in prev_word:
-            renewed_prev_word = prev_word.replace(".", "")
-            renewed_current_word = next_word.replace(".", "")
-
-            madison_total_probability += madison.getBigram().calculateProbabilityOfNextWord(
-                totalBigramMadi, renewed_current_word)
-            hamilton_total_probability += hamilton.getBigram().calculateProbabilityOfNextWord(
-                totalBigramHami, renewed_current_word)
-
-            madison_total_probability += madison.getBigram().calculateProbabilityOfNextWord(
-                totalBigramMadi, '</s>', renewed_prev_word)
-            hamilton_total_probability += hamilton.getBigram().calculateProbabilityOfNextWord(
-                totalBigramHami, '</s>', renewed_prev_word)
-
-        else:
-            renewed_current_word = next_word.replace(".", "")
-
-            madison_total_probability += madison.getBigram().calculateProbabilityOfNextWord(
-                totalBigramMadi, renewed_current_word, prev_word)
-            hamilton_total_probability += hamilton.getBigram().calculateProbabilityOfNextWord(
-                totalBigramHami, renewed_current_word, prev_word)
-
-    return {'madison': madison_total_probability, 'hamilton': hamilton_total_probability}
-
-def trigramTotalProbability(separated_line, hamilton_total_probability=0, madison_total_probability=0):
-    for i in range(len(separated_line) - 2):
-        prev_word = separated_line[i]
-        next_word = separated_line[i + 1]
+    print("Author is: {} and detected author is: {}. {} with {}".format(
+        author_name, detected_author, detection, n_gram))
+    print("Perplexities: Hamilton language model: {}, Madison Language model: {}".format(
+        hamilton_perplexity, madison_perplexity))
+    print()
 
 
-        # if '.' in prev_word:
-        #     prev_word = prev_word.replace(".", "")
-        #     next_word = next_word.replace(".", "")
-        #
-        #     hamilton_trigram_total_probability += hamilton.getTrigram().calculateProbabilityOfNextWord(60000,
-        #                                                                                                separated_line[
-        #                                                                                                    i + 2],
-        #                                                                                                separated_line[
-        #                                                                                                    i + 1])
-        #     madison_trigram_total_probability += madison.getTrigram().calculateProbabilityOfNextWord(60000,
-        #                                                                                              separated_line[
-        #                                                                                                  i + 2],
-        #                                                                                              separated_line[
-        #                                                                                                  i + 1])
-        # else:
-        #     hamilton_trigram_total_probability += hamilton.getTrigram().calculateProbabilityOfNextWord(60000,
-        #         separated_line[i + 2], separated_line[i + 1], separated_line[i])
-        #     madison_trigram_total_probability += madison.getTrigram().calculateProbabilityOfNextWord(60000,
-        #         separated_line[i + 2], separated_line[i + 1], separated_line[i])
+def test(hamilton, madison):
+    test_file_list = []
+    openAllTestFiles(test_file_list)
+
+    for file in test_file_list:
+        author_name = file.readline().strip()
+        for line in file.readlines():
+            separated_line = prepareLine(line)
+
+            hamilton_bigram_perplexity = hamilton.getBigram().perplexityCalculator(separated_line)
+            madison_bigram_perplexity = madison.getBigram().perplexityCalculator(separated_line)
+
+            madison_trigram_perplexity = madison.getTrigram().perplexityCalculator(separated_line)
+            hamilton_trigram_perplexity = hamilton.getTrigram().perplexityCalculator(separated_line)
+
+            classifyAuthor("Bigram", author_name, madison_bigram_perplexity, hamilton_bigram_perplexity)
+            classifyAuthor("Trigram", author_name, madison_trigram_perplexity, hamilton_trigram_perplexity)
+
+
+def generateRandomTexts(author):
+    unigram_generation, bigram_generation, trigram_generation = [], [], []
+    author.generatorCaller(unigram_generation, bigram_generation, trigram_generation)
+
+    print("{} language model's generations and perplexities: ".format(author.getName()))
+    print(*unigram_generation)
+    print(*bigram_generation)
+    print(*trigram_generation)
+    # print("Unigram generation: {}".format(*unigram_generation))
+    # print("Bigram generation: {}".format(*bigram_generation))
+    # print("Trigram generation: {}".format(*trigram_generation))
+    print()
+    print("Unigram perplexity: {}, Bigram perplexity: {}, Trigram perplexity: {}".format(
+        author.getUnigram().perplexityCalculator(unigram_generation),
+        author.getBigram().perplexityCalculator(bigram_generation),
+        author.getTrigram().perplexityCalculator(trigram_generation)
+    ))
+
+    print()
 
 
 file_list = []
-openAllFiles(file_list)
+openAllTrainFiles(file_list)
 
-hamilton = Author("hamilton")
-madison = Author("madison")
+hamilton = Author("Hamilton")
+madison = Author("Madison")
 
 for file in file_list:
     author = file.readline()
@@ -135,57 +120,6 @@ for file in file_list:
     else:
         frequencyCounter(file, madison)
 
-
-uni_list = []
-bi_list = []
-tri_list = []
-hamilton.generatorCaller(uni_list, bi_list, tri_list)
-
-fire_list = []
-openAllTestFiles(fire_list)
-fire = fire_list[5]
-print(fire.readline())
-
-hamilton_trigram_total_probability = 0
-madison_trigram_total_probability = 0
-
-hamilton_total_probability = 0
-madison_total_probability = 0
-
-mapo = madison.getTrigram().mapping.get('<s>')
-
-for line in fire.readlines():
-    separated_line = prepareLine(line)
-
-    hamilton_total_probability = hamilton.getBigram().perplexityCalculator(separated_line)
-    madison_total_probability = madison.getBigram().perplexityCalculator(separated_line)
-
-    madison_trigram_total_probability = madison.getTrigram().perplexityCalculator(separated_line)
-    hamilton_trigram_total_probability = hamilton.getTrigram().perplexityCalculator(separated_line)
-
-var = float(-1/len(separated_line))
-hamilton_total_probability = var * hamilton_total_probability
-madison_total_probability = var * madison_total_probability
-
-hamilton_total_probability = pow(2, hamilton_total_probability)
-madison_total_probability = pow(2, madison_total_probability)
-
-hamilton_trigram_total_probability = var * hamilton_trigram_total_probability
-madison_trigram_total_probability = var * madison_trigram_total_probability
-
-hamilton_trigram_total_probability = pow(2, hamilton_trigram_total_probability)
-madison_trigram_total_probability = pow(2, madison_trigram_total_probability)
-
-
-print("hamilton_total_probability: {}, madison_total_probability: {}".format(hamilton_total_probability, madison_total_probability))
-
-print("hamilton_trigram_probability: {}, madison_trigram_probability: {}".format(hamilton_trigram_total_probability,
-                                                                                 madison_trigram_total_probability))
-print(*uni_list)
-print(*bi_list)
-print(*tri_list)
-# print(len(uni_list))
-# print(len(bi_list))
-# print(len(tri_list))
-
-
+generateRandomTexts(hamilton)
+generateRandomTexts(madison)
+test(hamilton, madison)
