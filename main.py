@@ -122,4 +122,4 @@ for file in file_list:
 
 generateRandomTexts(hamilton)
 generateRandomTexts(madison)
-test(hamilton, madison)
+# test(hamilton, madison)

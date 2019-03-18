@@ -10,12 +10,14 @@ class Author(object):
     __bigram = Bigram()
     __trigram = Trigram()
 
+    # Constructor.
     def __init__(self, name):
         self.__name = name
         self.__unigram = Unigram()
         self.__bigram = Bigram()
         self.__trigram = Trigram()
 
+    # Getters.
     def getUnigram(self):
         return self.__unigram
 
@@ -28,11 +30,13 @@ class Author(object):
     def getName(self):
         return self.__name
 
+    # Caller method, it is used for counting frequency in the unigram, bigram and trigram.
     def counterCaller(self, separated_line):
         self.__unigram.counter(separated_line)
         self.__bigram.counter(separated_line)
         self.__trigram.counter(separated_line)
 
+    # Caller method, it is used for generating new text with respect to unigram, bigram and trigram.
     def generatorCaller(self, uni_list, bi_list, tri_list):
         self.__unigram.generator(uni_list)
         self.__bigram.generator(bi_list)
