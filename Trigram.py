@@ -76,7 +76,7 @@ class Trigram(NGram, object):
         if prev_map is None:
             return math.log2(float(1 / (self.totalBigramCounter(second_prev_map) + self.uniqueBigramCounter(second_prev_map))))
 
-        # All good, the triplet has seen before but we have to add one to all unique unigrams. Because maybe
+        # All good, the double has seen before but we have to add one to all unique unigrams. Because maybe
         # the current word has not seen yet after the previous words.
         total_count_junction = 1
         total_count_prev_word = self.totalCountCalculator(prev_map) + len(prev_map)

@@ -15,24 +15,10 @@ class Bigram(NGram, object):
     # Words with dots mean that end of the sentence, all doubles in the splitted text sent to the dotHandler method
     # for finding right place in the nested dictionary(mapping).
     def counter(self, separated_line):
-        for i in range(len(separated_line) - 1):
-
+        for i in range(1, len(separated_line)):
+            prev_word = separated_line[i - 1]
             current_word = separated_line[i]
-            next_word = separated_line[i + 1]
-            self.dotHandler(current_word, next_word)
-
-            renewed_current_word = current_word.replace(".", "")
-            renewed_next_word = next_word.replace(".", "")
-
-            if self.mapping.get(renewed_current_word):
-                secondary_dictionary = self.mapping.get(renewed_current_word)
-                if secondary_dictionary.get(renewed_next_word):
-                    secondary_dictionary[renewed_next_word] += 1
-
-                else:
-                    secondary_dictionary[renewed_next_word] = 1
-            else:
-                self.mapping[renewed_current_word] = {renewed_next_word: 1}
+            self.dotHandler(prev_word, current_word)
 
     # This method takes a final_list and add generated words to it. Also new word's generation made
     # with previous word that method takes them as parameters also.
@@ -66,10 +52,15 @@ class Bigram(NGram, object):
     # calculates conditional probability with respect to double's order.
     def calculateProbability(self, total_bigram_count, current_word, prev_word='<s>'):
 
+        # Second previous word has not seen in the of the mapping which means that
+        # never encountered before in the train part.
+        # We have to add one to seen counter and add one to all of the unique bigrams.
         prev_map = self.mapping.get(prev_word)
         if prev_map is None:
             return math.log2(1 / (total_bigram_count + self.uniqueBigramCounter(self.mapping)))
 
+        # All good, the previous word has seen before but we have to add one to all unique unigrams. Because maybe
+        # the current word has not seen yet after the previous word.
         total_count_junction = 1
         total_count_prev_word = self.totalCountCalculator(prev_map) + len(prev_map)
 
@@ -83,28 +74,36 @@ class Bigram(NGram, object):
     # In this method dot maybe be with the previous or current word, these words separated to the dots and
     # put into the right places in the nested dictionary.
     def dotHandler(self, prev_word, current_word):
+        renewed_prev_word = prev_word.replace(".", "")
+        renewed_current_word = current_word.replace(".", "")
+
         if '.' in prev_word:
-            prev_word = prev_word.replace(".", "")
-            prev_spec_map = self.mapping.get(prev_word)
-            current_word = current_word.replace(".", "")
-
-            if prev_spec_map is None:
-                self.mapping[prev_word] = {'</s>': 1}
-
-            else:
-                if prev_spec_map.get('</s>'):
-                    prev_spec_map['</s>'] += 1
-
+            # previous_word -> </s>
+            if self.mapping.get(renewed_prev_word):
+                if self.mapping.get(renewed_prev_word).get('</s>'):
+                    self.mapping.get(renewed_prev_word)['</s>'] += 1
                 else:
-                    prev_spec_map['</s>'] = 1
-
-            spec_map = self.mapping.get('<s>')
-
-            if spec_map.get(current_word):
-                spec_map[current_word] += 1
-
+                    self.mapping.get(renewed_prev_word)['</s>'] = 1
             else:
-                spec_map[current_word] = 1
+                self.mapping[renewed_prev_word] = {'</s>': 1}
+
+            # <s> -> current_word
+            if self.mapping.get('<s>'):
+                if self.mapping.get('<s>').get(renewed_current_word):
+                    self.mapping.get('<s>')[renewed_current_word] += 1
+                else:
+                    self.mapping.get('<s>')[renewed_current_word] = 1
+            else:
+                self.mapping['<s>'] = {renewed_current_word: 1}
+
+        else:
+            if self.mapping.get(renewed_prev_word):
+                if self.mapping.get(renewed_prev_word).get(renewed_current_word):
+                    self.mapping.get(renewed_prev_word)[renewed_current_word] += 1
+                else:
+                    self.mapping.get(renewed_prev_word)[renewed_current_word] = 1
+            else:
+                self.mapping[renewed_prev_word] = {renewed_current_word: 1}
 
     # This method took splitted text file as list and scans all words' probabilities in the list.
     # At the end calculates perplexity of the text file and return it.
