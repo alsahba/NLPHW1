@@ -67,14 +67,14 @@ class Trigram(NGram, object):
         # never encountered before in the train part.
         # We have to add one to seen counter and add one to all of the unique trigrams.
         if second_prev_map is None:
-            return math.log2(float(1 / (total_trigram_count + self.uniqueTrigramCounter(self.mapping))))
+            return math.log2(1 / (total_trigram_count + self.uniqueTrigramCounter(self.mapping)))
 
         prev_map = second_prev_map.get(prev_word)
 
         # Previous word has not seen yet after the second previous word.
         # We have to add one to seen counter and add one to all unique bigrams.
         if prev_map is None:
-            return math.log2(float(1 / (self.totalBigramCounter(second_prev_map) + self.uniqueBigramCounter(second_prev_map))))
+            return math.log2(1 / (self.totalBigramCounter(second_prev_map) + self.uniqueBigramCounter(second_prev_map)))
 
         # All good, the double has seen before but we have to add one to all unique unigrams. Because maybe
         # the current word has not seen yet after the previous words.
@@ -84,7 +84,7 @@ class Trigram(NGram, object):
         if prev_map.get(current_word):
             total_count_junction = prev_map[current_word] + 1
 
-        return math.log2(float(total_count_junction/total_count_prev_word))
+        return math.log2(total_count_junction/total_count_prev_word)
 
     # This method takes previous, current and next word as parameters. And put them into the nested dictionary with
     # respect to end of the sentence, beginning of the sentence difference.
