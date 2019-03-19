@@ -12,8 +12,6 @@ class NGram(object):
     # it looks to the breakpoints and get word with matched the range.
     def findWordWithRespectToRange(self, dice, breakpoints, result):
         i = bisect.bisect(breakpoints, dice)
-        if i >= len(result):
-            return result[len(result) - 1]
         return result[i]
 
     # This method is used for calculation total number of the unigrams according to mapping that taken as parameter.

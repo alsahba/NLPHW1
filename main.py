@@ -26,14 +26,14 @@ def prepareLine(line):
 
 # This method is used for opening all text files and put them to a file list in train file directory.
 def openAllTrainFiles(file_list):
-    os.chdir("./dataset")
+    os.chdir("./datatrain")
     for f in glob.glob("*.txt"):
         file_list.append(open(f, 'r'))
 
 
 # This method is used for opening all text files and put them to a file list in train file directory.
 def openAllTestFiles(file_list):
-    os.chdir("../datatest")
+    os.chdir("../test")
     for f in glob.glob("*.txt"):
         file_list.append(open(f, 'r'))
 
@@ -52,7 +52,7 @@ def frequencyCounter(text_file, author):
 # This method is used for detection author of a file.
 # It takes perplexities calculated with respect to hamilton and madison language model.
 # If detected author matches test text file's author's name then detection is succeed.
-def classifyAuthor(n_gram, author_name, hamilton_perplexity, madison_perplexity):
+def classifyAuthor(file_name, n_gram, author_name, hamilton_perplexity, madison_perplexity):
 
     if madison_perplexity < hamilton_perplexity:
         detected_author = "Madison"
@@ -64,8 +64,8 @@ def classifyAuthor(n_gram, author_name, hamilton_perplexity, madison_perplexity)
     else:
         detection = "Unsuccessful detection!"
 
-    print("Author is: {} and detected author is: {}. {} with {}".format(
-        author_name, detected_author, detection, n_gram))
+    print("File name: {}, Author is: {} and detected author is: {}. {} with {}".format(
+        file_name, author_name, detected_author, detection, n_gram))
     print("Perplexities -> Hamilton language model: {}, Madison Language model: {}".format(
         hamilton_perplexity, madison_perplexity))
     print()
@@ -90,8 +90,8 @@ def test(hamilton, madison):
             madison_trigram_perplexity = madison.getTrigram().perplexityCalculator(separated_line)
             hamilton_trigram_perplexity = hamilton.getTrigram().perplexityCalculator(separated_line)
 
-            classifyAuthor("Bigram", author_name, hamilton_bigram_perplexity, madison_bigram_perplexity)
-            classifyAuthor("Trigram", author_name, hamilton_trigram_perplexity, madison_trigram_perplexity)
+            classifyAuthor(file.name, "Bigram", author_name, hamilton_bigram_perplexity, madison_bigram_perplexity)
+            classifyAuthor(file.name, "Trigram", author_name, hamilton_trigram_perplexity, madison_trigram_perplexity)
 
 
 # This method is used for generation of random text and
@@ -114,22 +114,26 @@ def generateRandomTexts(author):
     print('\n\n')
 
 
-file_list = []
-openAllTrainFiles(file_list)
+# Main method, brain of all the code, must to be run.
+def main():
+    file_list = []
+    openAllTrainFiles(file_list)
 
-hamilton = Author("Hamilton")
-madison = Author("Madison")
+    hamilton = Author("Hamilton")
+    madison = Author("Madison")
 
-for file in file_list:
-    author = file.readline()
+    for file in file_list:
+        author = file.readline()
 
-    if author.strip() == "HAMILTON":
-        frequencyCounter(file, hamilton)
+        if author.strip() == "HAMILTON":
+            frequencyCounter(file, hamilton)
 
-    else:
-        frequencyCounter(file, madison)
+        else:
+            frequencyCounter(file, madison)
 
-generateRandomTexts(hamilton)
-generateRandomTexts(madison)
-test(hamilton, madison)
+    generateRandomTexts(hamilton)
+    generateRandomTexts(madison)
+    test(hamilton, madison)
+
+main()
 

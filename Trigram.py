@@ -28,26 +28,28 @@ class Trigram(NGram, object):
     # After getting inner dictionary with respect to previous words, we sent them to a generator helper function.
     def generator(self, final_list, prev_word='<s>', second_prev_word='<s>', repeat_count=1):
         temp_mapping = {}
-        #todo burada hata atti bir kere tam incelemek lazim
         spec_map = self.mapping.get(second_prev_word).get(prev_word)
 
+        # If the map is empty which means that there are no trigram which has first and second previous words,
+        # we refreshed the generator.
         if spec_map is None:
-            spec_map = {}
+            self.generator(final_list, '<s>', '<s>', repeat_count)
 
-        # Total repeat count of the known words. This helps for deciding denominator while calculating probability.
-        total_count = self.totalCountCalculator(spec_map)
+        else:
+            # Total repeat count of the known words. This helps for deciding denominator while calculating probability.
+            total_count = self.totalCountCalculator(spec_map)
 
-        for values in spec_map.items():
-            temp_mapping[values[0]] = values[1]
+            for values in spec_map.items():
+                temp_mapping[values[0]] = values[1]
 
-        new_word = self.generatorHelper(temp_mapping, total_count)
-        final_list.append(new_word)
+            new_word = self.generatorHelper(temp_mapping, total_count)
+            final_list.append(new_word)
 
-        if repeat_count < 30 and new_word != '</s>':
-            self.generator(final_list, new_word, prev_word, repeat_count + 1)
+            if repeat_count < 30 and new_word != '</s>':
+                self.generator(final_list, new_word, prev_word, repeat_count + 1)
 
-        if new_word == '</s>':
-            final_list.pop(len(final_list) - 1)
+            if new_word == '</s>':
+                final_list.pop(len(final_list) - 1)
 
     # This method takes splitted text file and add origin and end points to the nested dictionary structure.
     def prepareFirstAndLast(self, separated_line):
