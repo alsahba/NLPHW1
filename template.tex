@@ -1,0 +1,206 @@
+\documentclass{article}
+
+
+\usepackage{arxiv}
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{lipsum}
+
+\title{Introduction to Natural Language Processing Laboratory \\
+Assignment i- report}
+
+
+\author{
+  Ali Şahin Balıkçı \\
+  21426696 \\
+  \texttt{alisahinbalikci@gmail.com} \\
+  %% examples of more authors
+}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+This assignment's goals is getting familiar with basic natural language processing logic and language models. For this goal three task is given in this assignment. There are two authors which we are interested in and 	build our language models with their texts with respect to author. Then with these ngram language models we generate some texts, this is second task. Finally, with respect to test texts we are trying to detect authors with our language models by looking perplexities of these test texts.  
+
+\subsection{Software Usage}
+This program works without user interaction. Firstly, reads all input text files in train directory (datatrain folder) and build unigram, bigram and trigram language models with respect to them and their author. Then, after the building generates six texts with respect to two author's unigram, bigram and trigram language models. Also, calculates the generated texts' perplexity in their language models. So, we can see how possible the generated text will come up in real life. Finally, reads some test text files in test directory (test folder) and calculates perplexity of the files by using author's bigram and trigram language models. Then, detect author of the file by looking perplexity comparison.
+
+\subsection{Provided Possibilities/Error Messages}
+There are no extra software utility or error messages.
+
+\subsection{Software Design Notes - Problem}
+Problem of this assignment is a text is given and we do not understand its author, we must predict author of the text by somehow. Also, we must built correct language models with authors that we know by using their writing style.
+
+\subsection{Software Design Notes - Solution}
+The solution includes python's dictionary feature's usage a lot. We can use nested dictionaries for ngram language models. For generation and perplexity calculation, we can inspect the dictionary layer by layer like linked list structure and easily find next word's number or unique words number. Also, dictionary search time equals O(1) so, searching does not require extra time in the algorithm, this provides efficient and faster solution. \\For details of solution see section \ref{sec:solutiondetail}.
+
+\subsection{Input and Output Formats}
+Test and train text files like this format: \\ 
+AUTHOR \\
+To the People of the State of New York: AFTER an unequivocal experience of the inefficiency of the subsisting federal government..
+\\
+
+There is no output file in this assignment detection and perplexity calculation shown in the console window. Firstly, generated texts with language models and their perplexity calculation shown for two author. Then, for each test text file, file's name, author's name, detected author's name, perplexities for each author and which ngram model that used for perplexity calculation is shown to the user.
+
+
+\section{Implementation Details}
+\label{sec:solutiondetail}
+
+\subsection{Main Data Structures}
+\label{sec:dict}
+Lists and dictionaries used in this solution. For unigram language model dictionary used without nested structure, words matched with their repeat number. For bigram and trigram language models dictionary used like linked list structure. In bigram previous word matched with current word and the bigram's repeat number. In trigram first and second previous word matched with current word and the trigram's repeat number.
+\\ \\
+Unigram = \{ the: 1099, make: 432, phony: 5, truce: 75 \} \\
+Bigram = \{ the: \{ people: 340, state: 256, innefficiency: 21 \}, get: \{ used: 35, rid: 56, know: 97 \} \} \\
+Trigram = \{ to: \{ the: \{ people: 130, state: 22 \}, inefficiency: \{ of: 23 \} \} \}
+
+\subsection{Class Structure}
+There are six classes in this solution. One of them is main, other 4 of them is related with language model (ngram, unigram, bigram, trigram) and final is author class.
+\\ 
+
+\textbf{NGram:}  \\
+This is ancestor class of unigram, bigram and trigram. All of the three class extends this class. This class provides some methods to its child classes and they are overriding it for their own logic. Also, this class provides some core methods to its child classes, these methods did not override in child classes.
+\\ \\
+\textbf{Unigram, Bigram, Trigram:} \\
+These are language model child classes, all of them extends Ngram class. They held all the methods about language model processes and dictionary (mapping). Dictionary structure is changed one to another. And all of them overrided same method from their ancestor with own logic and processes. Also, they can held some helper methods independent from their ancestor.
+\\ \\
+For detailed dictionary structure for language models see \ref{sec:dict}.
+\\  \\ 
+\textbf{Author:}
+This class used for language model definition, there are different writers in this assignment and we built three language model for them. So, author class held unigram, bigram and trigram classes as variable. This class have two methods except the getter methods. One of them is generatorCaller, this method used for making generation for unigram, bigram and trigram, just calls the generator method for all ngrams. Other is counterCaller, this method used for counting the words and building language model for unigram, bigram and trigram, just calls the counter method of all ngrams.
+\\ \\ 
+\textbf{Main:}
+This is the main class in this solution. All file read, seperation and handle processes made in this class. Also, author classification method in this class. After all the counting and generation is finished, test files are read and classification made with perplexity comparison in that method.
+
+
+\subsection{Algorithm}
+
+\emph{Step by step algorithm is like this}:
+\begin{enumerate}
+\item Data train files opened.
+\item Author objects are created.
+\item First line of the text files get and compared to madison or hamilton
+\item Frequency counter called with author.
+\item Line seperated with respect to whitespaces and cleaned from punctuation except dots.
+\item First and last bigrams with sentence seperators added.
+\item Unigram, bigram and trigram counters called.
+\item Seperated line sent to unigram, bigram and trigram with a for loop words added to right places into the dictionary or nested dictionary.
+\item Generator of an author called.
+\item Unigram, bigram and trigram generators called and texts printed.
+\item Test files opened.
+\item Author of test text files seperated, rest of text split with respect to whitespaces.
+\item Bigram and Trigram perplexities calculated for each text and each author.
+\item Results compared with the known facts and printed.
+\end{enumerate}
+
+
+\subsection{Important Methods}
+There are some important and key methods works like cores of this solution. Some of them inherited from Ngram, some of them overridden and some of them private for its class only.
+
+\begin{itemize}
+\item \textbf{counter (separated line) }: This method inherited from Ngram and handled differently in unigram, bigram and trigram. In Unigram all unique words in separated line uncovered and adding a dictionary which is a mapping variable of Unigram class with their repeat count. In Bigram we have a dotHandler method. This method differenced word with dots and casual words. If a word comes up with dots which means that a sentence end and new sentence began. So, dotHandler detects these situations and put sentence determiners (<s>, </s>) to right places of the word. Then new bigrams or bigram added with respec to dots. Also, if two words did not have dots at all, bigrams added to bigram nested dictionary structure directly. In Trigram same as Bigram we have dotHandler and does same job as in the Bigram class. Words are handlet either with dots or not and put right places in the nested dictionary structure.
+
+\item \textbf{generatorHelper (mapping, total count) }: This method used in all ngram child classes. Takes a dictionary and total repeat number of words in the dictionary (not only unique words) and calculates probability of all words then add the probability together (cumulative probability). While doing this we have two list one of them is used for range ( probability distribution list) other of them is used for words (word list). Logic is we calculate the probability of a word then, we add this probability to cumulative probability then add this cumulative probability to distribution list, this defines our ranges for words. Then we pick a random number between 0 and 1 and sent two list and random number to findWordWithRespectToRange method. 
+
+\item \textbf{findWordWithRespectToRange(dice, breakpoints, result)}: Breakpoints list is our range keys and result is our word list, we found the word that matches with the range then return it. We must found the index with respect to a range. Bisect used for matching ranges(breakpoints) to the words(result). With respect to some random dice number, it looks to the breakpoints and returns a index number. With help of the index number we can match the word and range.
+
+\item \textbf{generator()}:
+\begin{itemize}
+
+\item In Unigram: a list (final list) and counter (repeat count) taken as parameters. This is a recursive method. firstly, we found total count of the dictionary (not only unique words) and send with Unigram dictionary to the generatorHelper. Then generatorHelper returns a new word and we append it to the list. We repeat this process for 30 times. After that we break the recursive loop and our generation is over.
+\item In Bigram: a list (final list), current word and counter(repeat count) tajeb as parameters. This is a recursive method. Firstly, we found our inner layer dictionary of current word in Bigram's mapping. Then, we have dictionary without nested structure. Just like the Unigram we sent them to generatorHelper and get new word. Then we append the new word to list. Because of we are in the bigram our stop event could be sentence end determiner (</s>) or 30 words. If one of this accured, we break the recursive loop and our generation is over.
+\end{itemize}
+ 
+\end{itemize}
+
+
+
+
+
+
+\subsection{Headings: second level}
+
+\begin{equation}
+\xi _{ij}(t)=P(x_{t}=i,x_{t+1}=j|y,v,w;\theta)= {\frac {\alpha _{i}(t)a^{w_t}_{ij}\beta _{j}(t+1)b^{v_{t+1}}_{j}(y_{t+1})}{\sum _{i=1}^{N} \sum _{j=1}^{N} \alpha _{i}(t)a^{w_t}_{ij}\beta _{j}(t+1)b^{v_{t+1}}_{j}(y_{t+1})}}
+\end{equation}
+
+\subsubsection{Headings: third level}
+
+
+\paragraph{Paragraph}
+
+
+\section{Examples of citations, figures, tables, references}
+\label{sec:others}
+
+
+The documentation for \verb+natbib+ may be found at
+\begin{center}
+  \url{http://mirrors.ctan.org/macros/latex/contrib/natbib/natnotes.pdf}
+\end{center}
+Of note is the command \verb+\citet+, which produces citations
+appropriate for use in inline text.  For example,
+\begin{verbatim}
+   \citet{hasselmo} investigated\dots
+\end{verbatim}
+produces
+\begin{quote}
+  Hasselmo, et al.\ (1995) investigated\dots
+\end{quote}
+
+\begin{center}
+  \url{https://www.ctan.org/pkg/booktabs}
+\end{center}
+
+
+\subsection{Figures}
+
+See Figure \ref{fig:fig1}. Here is how you add footnotes. \footnote{Sample of the first footnote.}
+
+\begin{figure}
+  \centering
+  \fbox{\rule[-.5cm]{4cm}{4cm} \rule[-.5cm]{4cm}{0cm}}
+  \caption{Sample figure caption.}
+  \label{fig:fig1}
+\end{figure}
+
+\subsection{Tables}
+
+See awesome Table~\ref{tab:table}.
+
+\begin{table}
+ \caption{Sample table title}
+  \centering
+  \begin{tabular}{lll}
+    \toprule
+    \multicolumn{2}{c}{Part}                   \\
+    \cmidrule(r){1-2}
+    Name     & Description     & Size ($\mu$m) \\
+    \midrule
+    Dendrite & Input terminal  & $\sim$100     \\
+    Axon     & Output terminal & $\sim$10      \\
+    Soma     & Cell body       & up to $10^6$  \\
+    \bottomrule
+  \end{tabular}
+  \label{tab:table}
+\end{table}
+
+\subsection{Lists}
+\begin{itemize}
+\item Lorem ipsum dolor sit amet
+\item consectetur adipiscing elit. 
+\item Aliquam dignissim blandit est, in dictum tortor gravida eget. In ac rutrum magna.
+\end{itemize}
+
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\end{document}
