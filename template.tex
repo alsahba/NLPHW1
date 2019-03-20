@@ -12,16 +12,16 @@
 \usepackage{nicefrac}       % compact symbols for 1/2, etc.
 \usepackage{microtype}      % microtypography
 \usepackage{lipsum}
+\usepackage{graphicx}
 
 \title{Introduction to Natural Language Processing Laboratory \\
-Assignment i- report}
+Assignment i - report}
 
 
 \author{
   Ali Şahin Balıkçı \\
   21426696 \\
   \texttt{alisahinbalikci@gmail.com} \\
-  %% examples of more authors
 }
 
 \begin{document}
@@ -43,6 +43,7 @@ Problem of this assignment is a text is given and we do not understand its autho
 The solution includes python's dictionary feature's usage a lot. We can use nested dictionaries for ngram language models. For generation and perplexity calculation, we can inspect the dictionary layer by layer like linked list structure and easily find next word's number or unique words number. Also, dictionary search time equals O(1) so, searching does not require extra time in the algorithm, this provides efficient and faster solution. \\For details of solution see section \ref{sec:solutiondetail}.
 
 \subsection{Input and Output Formats}
+\label{sec:output}
 Test and train text files like this format: \\ 
 AUTHOR \\
 To the People of the State of New York: AFTER an unequivocal experience of the inefficiency of the subsisting federal government..
@@ -50,6 +51,17 @@ To the People of the State of New York: AFTER an unequivocal experience of the i
 
 There is no output file in this assignment detection and perplexity calculation shown in the console window. Firstly, generated texts with language models and their perplexity calculation shown for two author. Then, for each test text file, file's name, author's name, detected author's name, perplexities for each author and which ngram model that used for perplexity calculation is shown to the user.
 
+\begin{figure}[!htb]
+        \center{\includegraphics[width=\textwidth]
+        {out1.png}}
+        \caption{\label{fig:my-label} Example Generation Output}
+\end{figure}
+      
+\begin{figure}[!htb]
+        \center{\includegraphics[width=\textwidth]
+        {out2.png}}
+        \caption{\label{fig:my-label} Example Detection Output}
+\end{figure}
 
 \section{Implementation Details}
 \label{sec:solutiondetail}
@@ -63,8 +75,7 @@ Bigram = \{ the: \{ people: 340, state: 256, innefficiency: 21 \}, get: \{ used:
 Trigram = \{ to: \{ the: \{ people: 130, state: 22 \}, inefficiency: \{ of: 23 \} \} \}
 
 \subsection{Class Structure}
-There are six classes in this solution. One of them is main, other 4 of them is related with language model (ngram, unigram, bigram, trigram) and final is author class.
-\\ 
+There are six classes in this solution. One of them is main, other 4 of them is related with language model (ngram, unigram, bigram, trigram) and final is author class. \\
 
 \textbf{NGram:}  \\
 This is ancestor class of unigram, bigram and trigram. All of the three class extends this class. This class provides some methods to its child classes and they are overriding it for their own logic. Also, this class provides some core methods to its child classes, these methods did not override in child classes.
@@ -116,26 +127,76 @@ There are some important and key methods works like cores of this solution. Some
 \begin{itemize}
 
 \item In Unigram: a list (final list) and counter (repeat count) taken as parameters. This is a recursive method. firstly, we found total count of the dictionary (not only unique words) and send with Unigram dictionary to the generatorHelper. Then generatorHelper returns a new word and we append it to the list. We repeat this process for 30 times. After that we break the recursive loop and our generation is over.
-\item In Bigram: a list (final list), current word and counter(repeat count) tajeb as parameters. This is a recursive method. Firstly, we found our inner layer dictionary of current word in Bigram's mapping. Then, we have dictionary without nested structure. Just like the Unigram we sent them to generatorHelper and get new word. Then we append the new word to list. Because of we are in the bigram our stop event could be sentence end determiner (</s>) or 30 words. If one of this accured, we break the recursive loop and our generation is over.
+\item In Bigram: a list (final list), current word and counter(repeat count) taken as parameters. This is a recursive method. Firstly, we found our inner layer dictionary of current word in Bigram's mapping. Then, we have dictionary without nested structure. Just like the Unigram we sent them to generatorHelper and get new word. Then we append the new word to list. Because of we are in the bigram our stop event could be sentence end determiner (</s>) or 30 words. If one of this accured, we break the recursive loop and our generation is over.
+\item In Trigram: a list (final list), previous and current word, counter(repeat count) taken as parameters. This is a recursive method. Firstly, we found our inner layer dictionary of current word in Trigram's mapping. Then, we have dictionary without nested structure. Just like the Bigram and Unigram we sent them to generatorHelper and get new word. Then we append the new word to list. Because of we are in the bigram our stop event could be sentence end determiner (</s>) or 30 words. If one of this accured, we break the recursive loop and our generation is over. There is a difference between trigram and bigram generator, sometimes new word and current word may be the end of sentence like "publius" word. This cause an error and minimize the generated text, for mitigation of this error we used a rule if publius keyword comes up as current word, we refreshed the generator like for the first time and continues with the same repeat count.
 \end{itemize}
- 
+ \item \textbf{perplexityCalculator(seperated line)}: This method used all ngram child classes. Like the counter method words with dots handled differently. For all words in the separated line handled with previous words in bigram and trigram and alone in unigram. All words/doubles/triplets sent to probabilityCalculator function. All logaritmic probabilities added and perplexity formula used on this probability summation in logaritmic scale. In the end we have a perplexity number and return them.\\ For detailed probability and perplexity calculation, see \ref{sec:calculation} 
 \end{itemize}
 
+\subsection{Extra Explanations About Solution}
 
+\subsubsection{Handle of Dots}
+In frequency counter except for Unigram, words with dots handled differently than others. First phase of the solution I destroyed all the dots and detection did not work quite that i was expected. Then counter method's structure changed. Dots handled differently than others. In bigram if word with dots encountered which means sentence end after that word, two bigram added one of them sentence begin determiner and next word after dot, other is sentence end determiner and current word with dots. While putting the new bigrams to mapping, words seperated with dots and other punctuation. After the changement of counter structure author detection getting more accurate but perplexities are not close that i was expected in Bigram. Like Bigram, Trigram handle of the dots are very similar to each other. Again if word with dot encountered, different trigrams added in the same step with sentence end or start determiners. This dot handlement encapsulates the test data texts. Probabiliies calculated with doubles or triplets made with respect to sentence end or start determiners.
 
+\subsubsection{Perplexity and Probability Calculation}
+\label{sec:calculation}
+I mentioned the dot handlement in the previous subsection. A test text data is given firstly all punctuation except dots destroyed. Then words looking doubles by doubles or triplets by triplets. Also, in Unigram words handled separately with each others so, dots has not an impact for perplexity or probability calculation. In perplexityCalculator firstly the doubles and triplets parsed with each other with respect to dots. For example in a double previous and current word if do not has any dots, they directly sent to probabilityCalculator. Otherwise they separated and sent with sentence end or start determiners. Same rule applies for the trigram perplexityCalculator. \\
+I used different version of add one smoothing in Bigram and Trigram. calculateProbability() method takes total bigram, trigrams number and previous and current words. Parameters may differently in Bigram and Trigram but logic is the same. In Bigram probability calculator we must look conditional probabilty but test text data's some words have never seen before in train text. So, they have not a place in nested dictionary mapping. I splited the conditional probability into two parts. In first part the previous word has never seen so condition is not applied. If condition is not right, there is no conditional probability. Despite of directly used laplace i handled that probability like one unique bigram in the total number of bigrams, so all one added to all unique bigrams and this new bigram. I thought that is a extended laplace because condition did not happened. This bigram's repeat count is 1 because we add all unique bigrams to one, this changes denominator too we added all unique bigrams to 1 and denominator evolves to total bigram + unique bigram. In the nested dictionary structure we go down trigram to bigram to unigram. So, after one layer in bigram we reached unigram and second and third formulas applied for previous word's unigram exactly.
 
-
-
-\subsection{Headings: second level}
-
-\begin{equation}
-\xi _{ij}(t)=P(x_{t}=i,x_{t+1}=j|y,v,w;\theta)= {\frac {\alpha _{i}(t)a^{w_t}_{ij}\beta _{j}(t+1)b^{v_{t+1}}_{j}(y_{t+1})}{\sum _{i=1}^{N} \sum _{j=1}^{N} \alpha _{i}(t)a^{w_t}_{ij}\beta _{j}(t+1)b^{v_{t+1}}_{j}(y_{t+1})}}
+Formula: \begin{equation}
+P(currentWord | previousWord) = \frac{1}{TotalNumberOf(Bigrams + UniqueBigrams)} 
 \end{equation}
 
-\subsubsection{Headings: third level}
+If previous word has seen before in mapping, current word may or may not be seen. So we use direct add one smoothing to second layer dictionary. We added all unigrams of previous word to one and extend the denominator as well.
+
+Formula of bigram has seen before: \begin{equation}
+P(currentWord | previousWord) = \frac{RepeatCount}{TotalNumberOf(Unigram + UniqueUnigrams)}
+\end{equation}
+
+Formula of if current word has not seen yet after previous word:
+\begin{equation}
+P(currentWord | previousWord) = \frac{1}{TotalNumberOf(Unigram + UniqueUnigrams)}
+\end{equation}
 
 
-\paragraph{Paragraph}
+Like Bigram same probability calculation applies Trigram too. If condition is not happen, there is no right probability calculation. Second and first previous and current word taken in Trigram's probability calculator. So, condition is previous first and second word did come up, but one of them or all bigram may not be seen in train texts, this means that condition did not occur at all. So, like Bigram we treated never seen bigrams trigrams as one and calculate their probability with respect to all trigrams and bigrams. If second and first previous word did come up before we did exactly what we did in Bigram's second part. So, add one to all bigram's unigram and increase the denominator by unique unigrams as well. In the nested dictionary structure we go down trigram to bigram to unigram. So, after one layer in trigram we reached bigram and third and fourth formulas applied for previous words' unigram exactly.
+\\ \\
+Order of words: second previous word -> previous word -> current word
+\\ \\
+Formula of second previous word has not seen before: 
+\begin{equation}
+P(currentWord | secondPreviousWord->previousWord) = \frac{1}{TotalNumberOf(Trigrams+UniqueTrigrams)}
+\end{equation}
+
+Formula of second previous word has seen but bigram of them has never seen before: 
+\begin{equation}
+P(currentWord | secondPreviousWord->previousWord) = \frac{1}{TotalNumberOf(Bigrams+UniqueBigrams)}
+\end{equation}
+
+Formula of trigram has seen before: \begin{equation}
+P(currentWord | secondPreviousWord->previousWord) = \frac{RepeatCount}{TotalNumberOf(Unigram + UniqueUnigrams)}
+\end{equation}
+
+Formula of previous words sequence has seen but all trigram never seen before: \begin{equation}
+P(currentWord | secondPreviousWord->previousWord) = \frac{1}{TotalNumberOf(Unigram + UniqueUnigrams)}
+\end{equation}
+
+To sum up, I did not follow direclty to add one smoothing but i inspired from it and come up with this solution because i think that conditional probability applied only the right circumstances.
+
+
+\subsubsection{Author Classification and Console Output}
+Author detection made with only by looking perplexity comparison in hamilton and madison language model. Lower perplexity defines the detection. I made the author detection by looking first line of the test text data and compare it to detected author. So, if the author of the text data is UNKNOWN method will always returned false, it is just a string comparison actually. 
+\\
+For the console output firstly generators runs and generates texts for two authors and their unigram, bigram, trigram language models. Also, perplexity is calculated for each of generations. Then in a for loop all test text datas read and perplexities calculated for two author. After the calculation detection method runs and prints an output. \\
+For detailed console output see \ref{sec:output} or run the program.
+
+\subsection{Results}
+
+
+
+\subsection{Conclusion}
+
+
 
 
 \section{Examples of citations, figures, tables, references}
@@ -161,16 +222,6 @@ produces
 \end{center}
 
 
-\subsection{Figures}
-
-See Figure \ref{fig:fig1}. Here is how you add footnotes. \footnote{Sample of the first footnote.}
-
-\begin{figure}
-  \centering
-  \fbox{\rule[-.5cm]{4cm}{4cm} \rule[-.5cm]{4cm}{0cm}}
-  \caption{Sample figure caption.}
-  \label{fig:fig1}
-\end{figure}
 
 \subsection{Tables}
 
@@ -193,12 +244,6 @@ See awesome Table~\ref{tab:table}.
   \label{tab:table}
 \end{table}
 
-\subsection{Lists}
-\begin{itemize}
-\item Lorem ipsum dolor sit amet
-\item consectetur adipiscing elit. 
-\item Aliquam dignissim blandit est, in dictum tortor gravida eget. In ac rutrum magna.
-\end{itemize}
 
 \bibliographystyle{IEEEtran}
 \bibliography{references}
